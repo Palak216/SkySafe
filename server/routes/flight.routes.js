@@ -1,10 +1,15 @@
 const express = require("express");
 
-const { addFlight } = require("../controllers/flight.controller");
+const {
+    addFlight,
+    getAllFlights,
+     getFlightById,
+} = require("../controllers/flight.controller");
 
 const router = express.Router();
 
-// Temporary (No Authentication)
 router.post("/", addFlight);
+router.get("/", getAllFlights);
+router.get("/:id", getFlightById);
 
 module.exports = router;

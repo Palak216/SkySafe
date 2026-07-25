@@ -1,55 +1,80 @@
 const Flight = require("../models/Flight");
 
 // ==============================
-// Add New Flight
+// Add Flight
 // ==============================
 const addFlight = async (req, res) => {
     try {
 
-        const {
-            flightNumber,
-            airline,
-            source,
-            destination,
-            departureTime,
-            arrivalTime,
-            duration,
-            price,
-            totalSeats,
-            availableSeats,
-            aircraft,
-            status
-        } = req.body;
-
-        // Check if flight already exists
-        const existingFlight = await Flight.findOne({ flightNumber });
+        const existingFlight = await Flight.findOne({
+            flightNumber: req.body.flightNumber,
+        });
 
         if (existingFlight) {
             return res.status(400).json({
                 success: false,
-                message: "Flight already exists"
+                message: "Flight already exists",
             });
         }
 
-        // Create flight
-        const flight = await Flight.create({
-            flightNumber,
-            airline,
-            source,
-            destination,
-            departureTime,
-            arrivalTime,
-            duration,
-            price,
-            totalSeats,
-            availableSeats,
-            aircraft,
-            status
-        });
+        const flight = await Flight.create(req.body);
 
         res.status(201).json({
             success: true,
             message: "Flight added successfully",
+            flight,
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+};
+
+// ==============================
+// Get All Flights
+// ==============================
+const getAllFlights = async (req, res) => {
+    try {
+
+        const flights = await Flight.find();
+
+        res.status(200).json({
+            success: true,
+            count: flights.length,
+            flights,
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+};
+// ==============================
+// Get Flight By ID
+// ==============================
+const getFlightById = async (req, res) => {
+    try {
+
+        const flight = await Flight.findById(req.params.id);
+
+        if (!flight) {
+            return res.status(404).json({
+                success: false,
+                message: "Flight not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
             flight
         });
 
@@ -65,5 +90,6 @@ const addFlight = async (req, res) => {
 
 module.exports = {
     addFlight,
-    
+    getAllFlights,
+    getFlightById,
 };
