@@ -3,14 +3,13 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
 const authRoutes = require("./routes/auth.routes");
+const flightRoutes = require("./routes/flight.routes");
 
 const app = express();
 
 // ===============================
 // Middlewares
 // ===============================
-
-// Allow Frontend to Access Backend
 app.use(
     cors({
         origin: "http://localhost:5173",
@@ -18,17 +17,13 @@ app.use(
     })
 );
 
-// Parse JSON Request Body
 app.use(express.json());
-
-// Parse Cookies
 app.use(cookieParser());
 
 // ===============================
 // Routes
 // ===============================
 
-// Home Route
 app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
@@ -36,13 +31,12 @@ app.get("/", (req, res) => {
     });
 });
 
-// Authentication Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/flights", flightRoutes);
 
 // ===============================
 // 404 Route
 // ===============================
-
 app.use((req, res) => {
     res.status(404).json({
         success: false,
