@@ -86,10 +86,78 @@ const getFlightById = async (req, res) => {
         });
 
     }
-};
+};// ==============================
+// Update Flight
+// ==============================
+const updateFlight = async (req, res) => {
+    try {
 
+        const flight = await Flight.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,
+                runValidators: true,
+            }
+        );
+
+        if (!flight) {
+            return res.status(404).json({
+                success: false,
+                message: "Flight not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Flight updated successfully",
+            flight
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+};
+// ==============================
+// Delete Flight
+// ==============================
+const deleteFlight = async (req, res) => {
+    try {
+
+        const flight = await Flight.findById(req.params.id);
+
+        if (!flight) {
+            return res.status(404).json({
+                success: false,
+                message: "Flight not found"
+            });
+        }
+
+        await flight.deleteOne();
+
+        res.status(200).json({
+            success: true,
+            message: "Flight deleted successfully"
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+};
 module.exports = {
     addFlight,
     getAllFlights,
     getFlightById,
+    updateFlight,
+    deleteFlight
 };
