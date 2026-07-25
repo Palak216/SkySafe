@@ -1,14 +1,14 @@
 {
-  "name": "server",
+  "name": "skysafe-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend for SkySafe Flight Booking Platform",
   "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Palak Agrawal",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
