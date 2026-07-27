@@ -154,10 +154,36 @@ const deleteFlight = async (req, res) => {
 
     }
 };
+const searchFlights = async (req, res) => {
+    try {
+
+        const { source, destination } = req.query;
+
+        const flights = await Flight.find({
+            source,
+            destination,
+        });
+
+        res.status(200).json({
+            success: true,
+            count: flights.length,
+            flights,
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+};
 module.exports = {
     addFlight,
     getAllFlights,
     getFlightById,
     updateFlight,
-    deleteFlight
+    deleteFlight,
+      searchFlights,
 };

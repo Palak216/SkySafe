@@ -6,6 +6,7 @@ const {
     getFlightById,
     updateFlight,
     deleteFlight,
+     searchFlights,
 } = require("../controllers/flight.controller");
 
 const router = express.Router();
@@ -13,6 +14,7 @@ const router = express.Router();
 router.post("/", addFlight);
 
 router.get("/", getAllFlights);
+router.get("/search", searchFlights); 
 
 router.get("/:id", getFlightById);
 
