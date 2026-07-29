@@ -157,12 +157,23 @@ const deleteFlight = async (req, res) => {
 const searchFlights = async (req, res) => {
     try {
 
-        const { source, destination } = req.query;
+        const { source, destination, status } = req.query;
 
-        const flights = await Flight.find({
-            source,
-            destination,
-        });
+        const filter = {};
+
+        if (source) {
+            filter.source = source;
+        }
+
+        if (destination) {
+            filter.destination = destination;
+        }
+
+        if (status) {
+            filter.status = status;
+        }
+
+        const flights = await Flight.find(filter);
 
         res.status(200).json({
             success: true,

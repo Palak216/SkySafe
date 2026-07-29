@@ -83,26 +83,36 @@ const loginUser = async (req, res) => {
         }
 
         // Generate JWT Token
-        const token = jwt.sign(
-            {
-                id: user._id,
-                email: user.email,
-                role: user.role
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: "7d"
-            }
-        );
+        // Generate JWT Token
+const token = jwt.sign(
+    {
+        id: user._id,
+        email: user.email,
+        role: user.role
+    },
+    process.env.JWT_SECRET,
+    {
+        expiresIn: "7d"
+    }
+);
 
-        res.cookie("token", token, {
-    httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000
+// Store JWT in cookie
+res.cookie("token", token, {
+    secure: false,      // true when deploying with HTTPS
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
 });
 
-res.cookie("token", token, {
-    httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000
+// Send response
+res.status(200).json({
+    success: true,
+    message: "Login Successful",
+    user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+    }
 });
 
 res.status(200).json({
