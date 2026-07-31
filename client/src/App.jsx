@@ -1,12 +1,13 @@
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
 
 function App() {
-  
-
   return (
     <>
-          <h1>Welcome to SkySafe ✈️</h1>
-          </>
+      <Navbar />
+      <Home />
+    </>
   );
 }
-         
+
 export default App;
