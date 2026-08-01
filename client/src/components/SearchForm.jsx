@@ -14,7 +14,7 @@ function SearchForm() {
   const [flights, setFlights] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
+  
   // ============================
   // Search Flights
   // ============================

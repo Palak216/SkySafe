@@ -9,3 +9,8 @@ export const searchFlights = async (searchData) => {
 
   return response.data;
 };
+
+export const getFlightById = async (id) => {
+  const response = await axios.get(`${API}/flights/${id}`);
+  return response.data;
+};
