@@ -2,7 +2,8 @@ const express = require("express");
 
 const {
     registerUser,
-    loginUser
+    loginUser,
+    logoutUser
 } = require("../controllers/auth.controller");
 
 const authMiddleware = require("../middleware/auth.middleware");
@@ -18,6 +19,7 @@ router.post("/register", registerUser);
 
 // Login User
 router.post("/login", loginUser);
+router.post("/logout", logoutUser);
 
 // ==========================
 // Protected Routes
