@@ -14,27 +14,44 @@ function SearchForm() {
   // Loading State
   const [loading, setLoading] = useState(false);
 
-  // Search Button Function
   const handleSearch = async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const data = await searchFlights({
-        source,
-        destination,
-        date,
-      });
+    console.log("Searching...");
+    console.log("Source:", source);
+    console.log("Destination:", destination);
+    console.log("Date:", date);
 
-      console.log(data);
+    const data = await searchFlights({
+      source,
+      destination,
+      date,
+    });
 
-      setFlights(data.flights || []);
-    } catch (error) {
-      console.log(error);
-      alert("Unable to fetch flights.");
-    } finally {
-      setLoading(false);
+    console.log("API Response:", data);
+
+    setFlights(data.flights);
+
+  } catch (error) {
+    console.log("FULL ERROR:", error);
+
+    if (error.response) {
+      console.log("Status:", error.response.status);
+      console.log("Response:", error.response.data);
     }
-  };
+
+    if (error.request) {
+      console.log("Request:", error.request);
+    }
+
+    console.log("Message:", error.message);
+
+    alert("Unable to fetch flights.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <section
