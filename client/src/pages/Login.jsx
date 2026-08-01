@@ -29,7 +29,7 @@ function Login() {
 
       alert(data.message);
 
-      navigate("/home");
+      window.location.href = "/home";
     } catch (error) {
       alert(
         error.response?.data?.message ||

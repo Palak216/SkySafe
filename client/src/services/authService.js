@@ -34,5 +34,18 @@ export const getProfile = async () => {
     }
   );
 
+
+  return response.data;
+};
+export const logoutUser = async () => {
+
+  const response = await axios.post(
+    `${API}/logout`,
+    {},
+    {
+      withCredentials: true,
+    }
+  );
+
   return response.data;
 };

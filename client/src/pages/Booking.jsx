@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams,useNavigate } from "react-router-dom";
 import {
   getFlightById,
   bookFlight,
@@ -7,6 +7,7 @@ import {
 
 function Booking() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   // ==========================
   // State Variables
@@ -86,6 +87,8 @@ function Booking() {
       alert(data.message);
 
       console.log(data);
+        navigate("/my-bookings");
+
     } catch (error) {
       console.log(error);
 
