@@ -1,28 +1,48 @@
+import { Link } from "react-router-dom";
+
 function Navbar() {
   return (
-    <nav className="bg-blue-700 text-white px-8 py-4 flex justify-between items-center shadow-md">
-      <h1 className="text-2xl font-bold">
-        SkySafe ✈️
-      </h1>
+    <nav className="bg-blue-700 text-white shadow-md sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto flex justify-between items-center px-8 py-4">
 
-      <div className="flex gap-6">
-        <button className="hover:text-yellow-300">
-          Home
-        </button>
-         <button className="hover:text-yellow-300">
-          Search Flights
-        </button>
-        <button className="hover:text-yellow-300">
-          My Bookings
-        </button>
+        {/* Logo */}
+        <Link to="/" className="text-3xl font-bold">
+          SkySafe ✈️
+        </Link>
 
-        <button className="hover:text-yellow-300">
-          Login
-        </button>
+        {/* Navigation Links */}
+        <div className="flex items-center gap-8">
 
-        <button className="hover:text-yellow-300">
-          Register
-        </button>
+          <Link
+            to="/"
+            className="hover:text-yellow-300 transition duration-300"
+          >
+            Home
+          </Link>
+
+          <a
+            href="#search"
+            className="hover:text-yellow-300 transition duration-300"
+          >
+            Search Flights
+          </a>
+
+          <Link
+            to="/login"
+            className="hover:text-yellow-300 transition duration-300"
+          >
+            Login
+          </Link>
+
+          <Link
+            to="/register"
+            className="bg-white text-blue-700 px-5 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-300"
+          >
+            Register
+          </Link>
+
+        </div>
+
       </div>
     </nav>
   );
