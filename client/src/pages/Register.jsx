@@ -40,7 +40,7 @@ function Register() {
 
       alert(data.message);
 
-      navigate("/login");
+      navigate("/");
     } catch (error) {
       alert(
         error.response?.data?.message || "Registration Failed"

@@ -2,48 +2,54 @@ import { Link } from "react-router-dom";
 
 function Navbar() {
   return (
-    <nav className="bg-blue-700 text-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto flex justify-between items-center px-8 py-4">
+    <nav className="bg-blue-700 text-white px-8 py-4 flex justify-between items-center shadow-md">
 
-        {/* Logo */}
-        <Link to="/" className="text-3xl font-bold">
-          SkySafe ✈️
+      <Link
+        to="/home"
+        className="text-2xl font-bold"
+      >
+        SkySafe ✈️
+      </Link>
+
+      <div className="flex gap-6">
+
+        <Link
+          to="/home"
+          className="hover:text-yellow-300"
+        >
+          Home
         </Link>
 
-        {/* Navigation Links */}
-        <div className="flex items-center gap-8">
+        <a
+          href="#search"
+          className="hover:text-yellow-300"
+        >
+          Search Flights
+        </a>
 
-          <Link
-            to="/"
-            className="hover:text-yellow-300 transition duration-300"
-          >
-            Home
-          </Link>
+        <Link
+          to="/booking"
+          className="hover:text-yellow-300"
+        >
+          My Bookings
+        </Link>
 
-          <a
-            href="#search"
-            className="hover:text-yellow-300 transition duration-300"
-          >
-            Search Flights
-          </a>
+        <Link
+          to="/"
+          className="hover:text-yellow-300"
+        >
+          Login
+        </Link>
 
-          <Link
-            to="/login"
-            className="hover:text-yellow-300 transition duration-300"
-          >
-            Login
-          </Link>
-
-          <Link
-            to="/register"
-            className="bg-white text-blue-700 px-5 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-300"
-          >
-            Register
-          </Link>
-
-        </div>
+        <Link
+          to="/register"
+          className="hover:text-yellow-300"
+        >
+          Register
+        </Link>
 
       </div>
+
     </nav>
   );
 }

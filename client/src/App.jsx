@@ -2,32 +2,32 @@ import { Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
 import Booking from "./pages/Booking";
-import Register from "./pages/Register";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 function App() {
   return (
     <Routes>
 
-      {/* Home Page */}
+      {/* Default Page */}
       <Route
         path="/"
-        element={<Home />}
+        element={<Login />}
       />
 
-      {/* Register Page */}
+      {/* Register */}
       <Route
         path="/register"
         element={<Register />}
       />
 
-      {/* Login Page */}
+      {/* Home */}
       <Route
-        path="/login"
-        element={<Login />}
+        path="/home"
+        element={<Home />}
       />
 
-      {/* Booking Page */}
+      {/* Booking */}
       <Route
         path="/booking/:id"
         element={<Booking />}
