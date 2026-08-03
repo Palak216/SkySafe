@@ -5,6 +5,7 @@ import Booking from "./pages/Booking";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import MyBookings from "./pages/MyBookings";
+import AdminDashboard from "./pages/AdminDashboard";
 function App() {
   return (
     <Routes>
@@ -14,6 +15,14 @@ function App() {
         path="/"
         element={<Login />}
       />
+      <Route
+  path="/admin"
+  element={
+    <ProtectedRoute>
+      <AdminDashboard />
+    </ProtectedRoute>
+  }
+/>
 
       {/* Register */}
       <Route

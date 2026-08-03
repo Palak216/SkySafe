@@ -5,7 +5,7 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth.routes");
 const flightRoutes = require("./routes/flight.routes");
 const bookingRoutes = require("./routes/booking.routes");
-
+const adminRoutes = require("./routes/admin.routes");
 const app = express();
 
 // ===============================
@@ -24,7 +24,7 @@ app.use(cookieParser());
 // ===============================
 // Routes
 // ===============================
-
+app.use("/api/admin", adminRoutes);
 app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
