@@ -14,7 +14,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://localhost:5174",
-       "https://skysafe-frontend.onrender.com"// YOUR DEPLOYED FRONTEND
+       "https://skysafe-1.onrender.com"
     ],
     credentials: true,
   })
