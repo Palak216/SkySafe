@@ -1,47 +1,14 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api/auth";
+const API = `${import.meta.env.VITE_API_URL}/api/auth`;
 
-export const registerUser = async (userData) => {
-  const response = await axios.post(
-    `${API}/register`,
-    userData,
-    {
-      withCredentials: true,
-    }
-  );
-
-  return response.data;
-};
-
-export const loginUser = async (userData) => {
+export const loginUser = async (email, password) => {
   const response = await axios.post(
     `${API}/login`,
-    userData,
     {
-      withCredentials: true,
-    }
-  );
-
-  return response.data;
-};
-
-export const getProfile = async () => {
-  const response = await axios.get(
-    `${API}/profile`,
-    {
-      withCredentials: true,
-    }
-  );
-
-
-  return response.data;
-};
-export const logoutUser = async () => {
-
-  const response = await axios.post(
-    `${API}/logout`,
-    {},
+      email,
+      password,
+    },
     {
       withCredentials: true,
     }

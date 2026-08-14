@@ -6,14 +6,16 @@ const authRoutes = require("./routes/auth.routes");
 const flightRoutes = require("./routes/flight.routes");
 const bookingRoutes = require("./routes/booking.routes");
 const adminRoutes = require("./routes/admin.routes");
+
 const app = express();
 
-// ===============================
-// Middlewares
-// ===============================
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+       "https://skysafe-frontend.onrender.com"// YOUR DEPLOYED FRONTEND
+    ],
     credentials: true,
   })
 );
@@ -21,29 +23,24 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// ===============================
-// Routes
-// ===============================
 app.use("/api/admin", adminRoutes);
+
 app.get("/", (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Welcome to SkySafe API ✈️"
-    });
+  res.status(200).json({
+    success: true,
+    message: "Welcome to SkySafe API ✈️"
+  });
 });
 
 app.use("/api/auth", authRoutes);
 app.use("/api/flights", flightRoutes);
 app.use("/api/bookings", bookingRoutes);
 
-// ===============================
-// 404 Route
-// ===============================
 app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        message: "Route Not Found"
-    });
+  res.status(404).json({
+    success: false,
+    message: "Route Not Found"
+  });
 });
 
 module.exports = app;
