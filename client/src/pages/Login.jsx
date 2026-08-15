@@ -1,121 +1,99 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../services/authService";
+import { AuthContext } from "../context/AuthContext";
 
 function Login() {
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const { setUser } = useContext(AuthContext);
 
-  const [loading, setLoading] = useState(false);
+  const handleLogin = async (e) => {
 
-  // ==============================
-  // Handle Input Changes
-  // ==============================
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    e.preventDefault();
+
+    try {
+
+      const data = await loginUser({
+        email,
+        password,
+      });
+
+      console.log("LOGIN RESPONSE:", data);
+
+      // VERY IMPORTANT
+      setUser(data.user);
+
+      alert(data.message);
+
+      navigate("/home");
+
+    } catch (error) {
+
+      console.log(error);
+
+      alert(
+        error.response?.data?.message ||
+        "Login failed"
+      );
+    }
   };
 
-  // ==============================
-  // Handle Login
-  // ==============================
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  try {
-    setLoading(true);
-
-    const data = await loginUser(formData);
-
-    alert(data.message);
-
-    navigate("/home");
-
-  } catch (error) {
-    alert(
-      error.response?.data?.message ||
-      "Login Failed"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
-
   return (
-    <div className="min-h-screen flex justify-center items-center bg-sky-100">
+    <section className="min-h-screen flex items-center justify-center bg-blue-100">
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-lg w-[400px]"
-      >
+      <div className="bg-white p-8 rounded-xl shadow-lg w-80">
 
-        {/* ==============================
-            Heading
-        ============================== */}
-        <h2 className="text-3xl font-bold text-center text-blue-700 mb-6">
+        <h1 className="text-2xl font-bold text-blue-700 text-center mb-6">
           Login
-        </h2>
+        </h1>
 
-        {/* ==============================
-            Email
-        ============================== */}
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full border p-3 rounded-lg mb-4"
-          required
-        />
+        <form onSubmit={handleLogin}>
 
-        {/* ==============================
-            Password
-        ============================== */}
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-          className="w-full border p-3 rounded-lg mb-6"
-          required
-        />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border rounded-lg p-3 mb-3"
+            required
+          />
 
-        {/* ==============================
-            Login Button
-        ============================== */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg disabled:opacity-60"
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border rounded-lg p-3 mb-4"
+            required
+          />
 
-        {/* ==============================
-            Register Link
-        ============================== */}
-        <p className="text-center mt-5">
+          <button
+            type="submit"
+            className="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg"
+          >
+            Login
+          </button>
+
+        </form>
+
+        <p className="text-center mt-4 text-sm">
           Don't have an account?{" "}
-
           <Link
             to="/register"
-            className="text-blue-700 font-semibold"
+            className="text-blue-700"
           >
             Register
           </Link>
         </p>
 
-      </form>
+      </div>
 
-    </div>
+    </section>
   );
 }
 

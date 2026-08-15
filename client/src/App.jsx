@@ -39,13 +39,13 @@ function App() {
 
       {/* My Bookings */}
       <Route
-        path="/my-bookings"
-        element={
-          <ProtectedRoute>
-            <MyBookings />
-          </ProtectedRoute>
-        }
-      />
+    path="/booking/:id"
+    element={
+    <ProtectedRoute>
+      <Booking />
+    </ProtectedRoute>
+  }
+/>
 
       {/* Admin */}
       <Route
