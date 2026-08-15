@@ -1,10 +1,13 @@
 import axios from "axios";
 
-const API = `${import.meta.env.VITE_API_URL}/api/bookings`;
+const API = "https://skysafe-b6bq.onrender.com/api/bookings";
 
+// ==============================
+// Book Flight
+// ==============================
 export const bookFlight = async (bookingData) => {
   const response = await axios.post(
-    API,
+    `${API}`,
     bookingData,
     {
       withCredentials: true,
@@ -14,6 +17,9 @@ export const bookFlight = async (bookingData) => {
   return response.data;
 };
 
+// ==============================
+// Get My Bookings
+// ==============================
 export const getMyBookings = async () => {
   const response = await axios.get(
     `${API}/my`,
@@ -25,9 +31,12 @@ export const getMyBookings = async () => {
   return response.data;
 };
 
-export const cancelBooking = async (id) => {
+// ==============================
+// Cancel Booking
+// ==============================
+export const cancelBooking = async (bookingId) => {
   const response = await axios.delete(
-    `${API}/${id}`,
+    `${API}/${bookingId}`,
     {
       withCredentials: true,
     }
