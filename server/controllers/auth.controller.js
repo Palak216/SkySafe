@@ -65,28 +65,45 @@ const registerUser = async (req, res) => {
 // Login User
 // ==========================
 const loginUser = async (req, res) => {
-
     try {
+        console.log("========== LOGIN REQUEST ==========");
+        console.log("LOGIN BODY:", req.body);
+        console.log("EMAIL:", req.body?.email);
+        console.log("PASSWORD EXISTS:", !!req.body?.password);
+        console.log("PASSWORD TYPE:", typeof req.body?.password);
 
         const { email, password } = req.body;
 
         if (!email || !password) {
+            console.log("❌ LOGIN FIELDS MISSING");
+
             return res.status(400).json({
                 success: false,
                 message: "Please fill all fields",
             });
         }
 
+        console.log("✅ LOGIN FIELDS RECEIVED");
+
         const user = await User.findOne({ email });
 
         if (!user) {
+            console.log("❌ USER NOT FOUND:", email);
+
             return res.status(400).json({
                 success: false,
                 message: "User not found",
             });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
+        console.log("✅ USER FOUND:", user.email);
+
+        const isMatch = await bcrypt.compare(
+            password,
+            user.password
+        );
+
+        console.log("PASSWORD MATCH:", isMatch);
 
         if (!isMatch) {
             return res.status(400).json({
@@ -108,11 +125,13 @@ const loginUser = async (req, res) => {
         );
 
         res.cookie("token", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
         });
+
+        console.log("✅ LOGIN SUCCESS");
 
         return res.status(200).json({
             success: true,
@@ -126,16 +145,14 @@ const loginUser = async (req, res) => {
         });
 
     } catch (error) {
+        console.error("❌ LOGIN ERROR:", error);
 
         return res.status(500).json({
             success: false,
             message: error.message,
         });
-
     }
-
 };
-
 // ==========================
 // Logout User
 // ==========================
