@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../services/authService";
 
 function Login() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -10,6 +12,9 @@ function Login() {
 
   const [loading, setLoading] = useState(false);
 
+  // ==============================
+  // Handle Input Changes
+  // ==============================
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -17,23 +22,32 @@ function Login() {
     });
   };
 
+  // ==============================
+  // Handle Login
+  // ==============================
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.email || !formData.password) {
+      alert("Please enter email and password");
+      return;
+    }
 
     try {
       setLoading(true);
 
-      // IMPORTANT:
-      // authService expects loginUser(email, password)
+      // Send email and password separately
       const data = await loginUser(
         formData.email,
         formData.password
       );
 
+      console.log("Login response:", data);
+
       alert(data.message);
 
-      // Login successful
-      window.location.href = "/home";
+      // Navigate using React Router
+      navigate("/home");
 
     } catch (error) {
       console.error("Login error:", error);
@@ -42,6 +56,7 @@ function Login() {
         error.response?.data?.message ||
         "Login Failed"
       );
+
     } finally {
       setLoading(false);
     }
@@ -55,10 +70,16 @@ function Login() {
         className="bg-white p-8 rounded-xl shadow-lg w-[400px]"
       >
 
+        {/* ==============================
+            Heading
+        ============================== */}
         <h2 className="text-3xl font-bold text-center text-blue-700 mb-6">
           Login
         </h2>
 
+        {/* ==============================
+            Email
+        ============================== */}
         <input
           type="email"
           name="email"
@@ -69,6 +90,9 @@ function Login() {
           required
         />
 
+        {/* ==============================
+            Password
+        ============================== */}
         <input
           type="password"
           name="password"
@@ -79,14 +103,20 @@ function Login() {
           required
         />
 
+        {/* ==============================
+            Login Button
+        ============================== */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg"
+          className="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg disabled:opacity-60"
         >
           {loading ? "Logging in..." : "Login"}
         </button>
 
+        {/* ==============================
+            Register Link
+        ============================== */}
         <p className="text-center mt-5">
           Don't have an account?{" "}
 
