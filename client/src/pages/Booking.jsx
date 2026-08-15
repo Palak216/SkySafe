@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { useParams,useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { getFlightById } from "../services/flightService";
+import { bookFlight } from "../services/bookingService";
 import {
   getFlightById,
   bookFlight,
