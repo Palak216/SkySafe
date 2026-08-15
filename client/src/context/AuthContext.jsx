@@ -4,17 +4,25 @@ import { getProfile } from "../services/authService";
 export const AuthContext = createContext();
 
 function AuthProvider({ children }) {
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const loadUser = async () => {
     try {
+
       const data = await getProfile();
+
       setUser(data.user);
+
     } catch (error) {
+
       setUser(null);
+
     } finally {
+
       setLoading(false);
+
     }
   };
 
