@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { loginUser } from "../services/authService";
 
 function Login() {
-  const navigate = useNavigate();
-
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -25,12 +23,21 @@ function Login() {
     try {
       setLoading(true);
 
-      const data = await loginUser(formData);
+      // IMPORTANT:
+      // authService expects loginUser(email, password)
+      const data = await loginUser(
+        formData.email,
+        formData.password
+      );
 
       alert(data.message);
 
+      // Login successful
       window.location.href = "/home";
+
     } catch (error) {
+      console.error("Login error:", error);
+
       alert(
         error.response?.data?.message ||
         "Login Failed"
@@ -73,6 +80,7 @@ function Login() {
         />
 
         <button
+          type="submit"
           disabled={loading}
           className="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg"
         >
@@ -81,6 +89,7 @@ function Login() {
 
         <p className="text-center mt-5">
           Don't have an account?{" "}
+
           <Link
             to="/register"
             className="text-blue-700 font-semibold"
