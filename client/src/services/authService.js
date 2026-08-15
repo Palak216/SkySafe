@@ -5,7 +5,11 @@ const API = "https://skysafe-b6bq.onrender.com/api/auth";
 // ==============================
 // Register User
 // ==============================
-export const registerUser = async (name, email, password) => {
+export const registerUser = async ({
+  name,
+  email,
+  password,
+}) => {
   const response = await axios.post(
     `${API}/register`,
     {

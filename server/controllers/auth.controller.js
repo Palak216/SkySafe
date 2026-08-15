@@ -7,8 +7,21 @@ const jwt = require("jsonwebtoken");
 // ==========================
 const registerUser = async (req, res) => {
     try {
+        console.log("REGISTER BODY:", req.body);
 
         const { name, email, password } = req.body;
+
+        console.log("NAME:", name);
+        console.log("EMAIL:", email);
+        console.log("PASSWORD EXISTS:", !!password);
+        console.log("PASSWORD TYPE:", typeof password);
+
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Name, email and password are required",
+            });
+        }
 
         const existingUser = await User.findOne({ email });
 
@@ -39,12 +52,12 @@ const registerUser = async (req, res) => {
         });
 
     } catch (error) {
+        console.error("REGISTER ERROR:", error);
 
         return res.status(500).json({
             success: false,
             message: error.message,
         });
-
     }
 };
 

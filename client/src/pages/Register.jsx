@@ -5,6 +5,9 @@ import { registerUser } from "../services/authService";
 function Register() {
   const navigate = useNavigate();
 
+  // ==============================
+  // Form State
+  // ==============================
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -14,6 +17,9 @@ function Register() {
 
   const [loading, setLoading] = useState(false);
 
+  // ==============================
+  // Handle Input Changes
+  // ==============================
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -21,9 +27,13 @@ function Register() {
     });
   };
 
+  // ==============================
+  // Handle Registration
+  // ==============================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Check password match
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match");
       return;
@@ -32,36 +42,47 @@ function Register() {
     try {
       setLoading(true);
 
+      // Send registration data to backend
       const data = await registerUser({
         name: formData.name,
         email: formData.email,
         password: formData.password,
       });
 
+      // Show backend message
       alert(data.message);
 
+      // Go to Login page
       navigate("/");
     } catch (error) {
+      console.error("Registration Error:", error);
+
       alert(
-        error.response?.data?.message || "Registration Failed"
+        error.response?.data?.message ||
+          "Registration Failed"
       );
     } finally {
       setLoading(false);
     }
   };
 
+  // ==============================
+  // UI
+  // ==============================
   return (
-    <div className="min-h-screen flex justify-center items-center bg-sky-100">
+    <div className="min-h-screen flex justify-center items-center bg-sky-100 px-4">
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-lg w-[400px]"
+        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-[400px]"
       >
 
+        {/* Heading */}
         <h2 className="text-3xl font-bold text-center text-blue-700 mb-6">
           Create Account
         </h2>
 
+        {/* Name */}
         <input
           type="text"
           name="name"
@@ -72,6 +93,7 @@ function Register() {
           required
         />
 
+        {/* Email */}
         <input
           type="email"
           name="email"
@@ -82,6 +104,7 @@ function Register() {
           required
         />
 
+        {/* Password */}
         <input
           type="password"
           name="password"
@@ -89,9 +112,11 @@ function Register() {
           value={formData.password}
           onChange={handleChange}
           className="w-full border p-3 rounded-lg mb-4"
+          minLength={6}
           required
         />
 
+        {/* Confirm Password */}
         <input
           type="password"
           name="confirmPassword"
@@ -99,28 +124,35 @@ function Register() {
           value={formData.confirmPassword}
           onChange={handleChange}
           className="w-full border p-3 rounded-lg mb-6"
+          minLength={6}
           required
         />
 
+        {/* Register Button */}
         <button
+          type="submit"
           disabled={loading}
-          className="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg"
+          className={`w-full text-white py-3 rounded-lg ${
+            loading
+              ? "bg-gray-500 cursor-not-allowed"
+              : "bg-blue-700 hover:bg-blue-800"
+          }`}
         >
           {loading ? "Registering..." : "Register"}
         </button>
 
+        {/* Login Link */}
         <p className="text-center mt-5">
           Already have an account?{" "}
           <Link
-            to="/login"
-            className="text-blue-700 font-semibold"
+            to="/"
+            className="text-blue-700 font-semibold hover:underline"
           >
             Login
           </Link>
         </p>
 
       </form>
-
     </div>
   );
 }
