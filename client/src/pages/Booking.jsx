@@ -2,18 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getFlightById } from "../services/flightService";
 import { bookFlight } from "../services/bookingService";
-import {
-  getFlightById,
-  bookFlight,
-} from "../services/flightService";
 
 function Booking() {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  // ==========================
-  // State Variables
-  // ==========================
 
   const [flight, setFlight] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,10 +17,6 @@ function Booking() {
       gender: "M",
     },
   ]);
-
-  // ==========================
-  // Fetch Flight Details
-  // ==========================
 
   useEffect(() => {
     fetchFlight();
@@ -48,10 +36,6 @@ function Booking() {
     }
   };
 
-  // ==========================
-  // Passenger Input Handler
-  // ==========================
-
   const handlePassengerChange = (index, field, value) => {
     const updatedPassengers = [...passengers];
 
@@ -59,10 +43,6 @@ function Booking() {
 
     setPassengers(updatedPassengers);
   };
-
-  // ==========================
-  // Add Passenger
-  // ==========================
 
   const addPassenger = () => {
     setPassengers([
@@ -75,10 +55,6 @@ function Booking() {
     ]);
   };
 
-  // ==========================
-  // Confirm Booking
-  // ==========================
-
   const handleBooking = async () => {
     try {
       const data = await bookFlight({
@@ -89,21 +65,18 @@ function Booking() {
       alert(data.message);
 
       console.log(data);
-        navigate("/my-bookings");
+
+      navigate("/my-bookings");
 
     } catch (error) {
       console.log(error);
 
       alert(
         error.response?.data?.message ||
-          "Booking Failed"
+        "Booking Failed"
       );
     }
   };
-
-  // ==========================
-  // Loading
-  // ==========================
 
   if (loading) {
     return (
@@ -113,10 +86,6 @@ function Booking() {
     );
   }
 
-  // ==========================
-  // Flight Not Found
-  // ==========================
-
   if (!flight) {
     return (
       <h1 className="text-center mt-20 text-red-600 text-3xl">
@@ -124,10 +93,6 @@ function Booking() {
       </h1>
     );
   }
-
-  // ==========================
-  // UI
-  // ==========================
 
   return (
     <section className="max-w-5xl mx-auto py-16 px-5">
