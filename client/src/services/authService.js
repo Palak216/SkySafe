@@ -1,8 +1,5 @@
 import axios from "axios";
 
-// ==============================
-// Backend API
-// ==============================
 const API = "https://skysafe-b6bq.onrender.com/api/auth";
 
 // ==============================
@@ -31,7 +28,10 @@ export const registerUser = async ({
 // ==============================
 // Login User
 // ==============================
-export const loginUser = async (email, password) => {
+export const loginUser = async ({
+  email,
+  password,
+}) => {
   const response = await axios.post(
     `${API}/login`,
     {

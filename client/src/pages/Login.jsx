@@ -26,41 +26,26 @@ function Login() {
   // Handle Login
   // ==============================
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!formData.email || !formData.password) {
-      alert("Please enter email and password");
-      return;
-    }
+  try {
+    setLoading(true);
 
-    try {
-      setLoading(true);
+    const data = await loginUser(formData);
 
-      // Send email and password separately
-      const data = await loginUser(
-        formData.email,
-        formData.password
-      );
+    alert(data.message);
 
-      console.log("Login response:", data);
+    navigate("/home");
 
-      alert(data.message);
-
-      // Navigate using React Router
-      navigate("/home");
-
-    } catch (error) {
-      console.error("Login error:", error);
-
-      alert(
-        error.response?.data?.message ||
-        "Login Failed"
-      );
-
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (error) {
+    alert(
+      error.response?.data?.message ||
+      "Login Failed"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex justify-center items-center bg-sky-100">
