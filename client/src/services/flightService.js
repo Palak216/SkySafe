@@ -1,40 +1,33 @@
 import axios from "axios";
 
-const API = "https://skysafe-b6bq.onrender.com/api/flights";
-const BOOKING_API = "https://skysafe-b6bq.onrender.com/api/bookings";
+const API = "https://skysafe-b6bq.onrender.com/api/bookings";
 
-// ==============================
-// Get Flight By ID
-// ==============================
-export const getFlightById = async (id) => {
-  const response = await axios.get(
-    `${API}/${id}`
-  );
-
-  return response.data;
-};
-
-// ==============================
-// Search Flights
-// ==============================
-export const searchFlights = async (params) => {
-  const response = await axios.get(
-    `${API}/search`,
+export const bookFlight = async (bookingData) => {
+  const response = await axios.post(
+    API,
+    bookingData,
     {
-      params,
+      withCredentials: true,
     }
   );
 
   return response.data;
 };
 
-// ==============================
-// Book Flight
-// ==============================
-export const bookFlight = async (bookingData) => {
-  const response = await axios.post(
-    BOOKING_API,
-    bookingData,
+export const getMyBookings = async () => {
+  const response = await axios.get(
+    `${API}/my`,
+    {
+      withCredentials: true,
+    }
+  );
+
+  return response.data;
+};
+
+export const cancelBooking = async (id) => {
+  const response = await axios.delete(
+    `${API}/${id}`,
     {
       withCredentials: true,
     }

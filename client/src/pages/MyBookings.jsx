@@ -1,13 +1,9 @@
 import { useEffect, useState } from "react";
 import { getMyBookings, cancelBooking } from "../services/bookingService";
-import { useParams, useNavigate } from "react-router-dom";
-function MyBookings() {
 
+function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { id } = useParams();
-  
-const navigate = useNavigate();
 
   useEffect(() => {
     fetchBookings();
@@ -16,25 +12,21 @@ const navigate = useNavigate();
   const fetchBookings = async () => {
     try {
       const data = await getMyBookings();
-      console.log(data.bookings);
 
-      setBookings(data.bookings);
+      console.log("MY BOOKINGS:", data);
 
+      setBookings(data.bookings || []);
     } catch (error) {
-
-      console.log(error);
-      alert("Unable to fetch bookings");
-
+      console.error(
+        "MY BOOKINGS ERROR:",
+        error.response?.data || error.message
+      );
     } finally {
-
       setLoading(false);
-
     }
   };
 
-  // ✅ Move this function here
   const handleCancelBooking = async (bookingId) => {
-
     const confirmCancel = window.confirm(
       "Are you sure you want to cancel this booking?"
     );
@@ -42,21 +34,21 @@ const navigate = useNavigate();
     if (!confirmCancel) return;
 
     try {
-
       const data = await cancelBooking(bookingId);
 
       alert(data.message);
-      navigate("/my-bookings");
 
-      fetchBookings();
-
+      await fetchBookings();
     } catch (error) {
+      console.error(
+        "CANCEL ERROR:",
+        error.response?.data || error.message
+      );
 
       alert(
         error.response?.data?.message ||
-        "Unable to cancel booking"
+          "Unable to cancel booking"
       );
-
     }
   };
 
@@ -85,29 +77,34 @@ const navigate = useNavigate();
             key={booking._id}
             className="bg-white shadow-lg rounded-xl p-6 mb-6"
           >
-
             <h2 className="text-2xl font-bold text-blue-700">
-              {booking.flight.airline}
+              {booking.flight?.airline}
             </h2>
 
             <p>
-              <strong>Flight:</strong> {booking.flight.flightNumber}
+              <strong>Flight:</strong>{" "}
+              {booking.flight?.flightNumber}
             </p>
 
             <p>
-              <strong>Route:</strong> {booking.flight.source} → {booking.flight.destination}
+              <strong>Route:</strong>{" "}
+              {booking.flight?.source} →{" "}
+              {booking.flight?.destination}
             </p>
 
             <p>
-              <strong>Booking Ref:</strong> {booking.bookingRef}
+              <strong>Booking Ref:</strong>{" "}
+              {booking.bookingRef}
             </p>
 
             <p>
-              <strong>Status:</strong> [{booking.status}]
+              <strong>Status:</strong>{" "}
+              {booking.status}
             </p>
 
             <p>
-              <strong>Seats:</strong> {booking.seatsBooked}
+              <strong>Seats:</strong>{" "}
+              {booking.seatsBooked}
             </p>
 
             <h2 className="text-green-600 text-2xl font-bold mt-4">
@@ -116,13 +113,14 @@ const navigate = useNavigate();
 
             {booking.status === "Confirmed" && (
               <button
-  onClick={() => handleCancelBooking(booking._id)}
-  className="mt-5 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg"
->
-  Cancel Booking
-</button>
+                onClick={() =>
+                  handleCancelBooking(booking._id)
+                }
+                className="mt-5 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg"
+              >
+                Cancel Booking
+              </button>
             )}
-
           </div>
         ))
       )}

@@ -1,171 +1,61 @@
-import { Routes, Route } from "react-router-dom";
+const express = require("express");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
 
-import Navbar from "./components/Navbar";
-import ProtectedRoute from "./components/ProtectedRoute";
+const authRoutes = require("./routes/auth.routes");
+const flightRoutes = require("./routes/flight.routes");
+const bookingRoutes = require("./routes/booking.routes");
+const adminRoutes = require("./routes/admin.routes");
 
-import Home from "./pages/Home";
-import Booking from "./pages/Booking";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import MyBookings from "./pages/MyBookings";
-import AdminDashboard from "./pages/AdminDashboard";
+const app = express();
 
-function App() {
-  return (
-    <>
-      {/* Navbar appears on every page */}
-      <Navbar />
+// ===============================
+// CORS
+// ===============================
 
-      <Routes>
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "https://skysafe-1.onrender.com",
+    ],
+    credentials: true,
+  })
+);
 
-        {/* =========================
-            Login
-        ========================= */}
-        <Route
-          path="/"
-          element={<Login />}
-        />
+// ===============================
+// Middlewares
+// ===============================
 
-        {/* =========================
-            Register
-        ========================= */}
-        <Route
-          path="/register"
-          element={<Register />}
-        />
+app.use(express.json());
+app.use(cookieParser());
 
-        {/* =========================
-            Home
-        ========================= */}
-        <Route
-          path="/home"
-          element={<Home />}
-        />
+// ===============================
+// Routes
+// ===============================
 
-        {/* =========================
-            Booking
-        ========================= */}
-        <Route
-          path="/booking/:id"
-          element={
-            <ProtectedRoute>
-              <Booking />
-            </ProtectedRoute>
-          }
-        />
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome to SkySafe API ✈️",
+  });
+});
 
-        {/* =========================
-            My Bookings
-        ========================= */}
-        <Route
-          path="/my-bookings"
-          element={
-            <ProtectedRoute>
-              <MyBookings />
-            </ProtectedRoute>
-          }
-        />
+app.use("/api/auth", authRoutes);
+app.use("/api/flights", flightRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/admin", adminRoutes);
 
-        {/* =========================
-            Admin
-        ========================= */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+// ===============================
+// 404 Route
+// ===============================
 
-      </Routes>
-    </>
-  );
-}import { Routes, Route } from "react-router-dom";
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route Not Found",
+  });
+});
 
-import Navbar from "./components/Navbar";
-import ProtectedRoute from "./components/ProtectedRoute";
-
-import Home from "./pages/Home";
-import Booking from "./pages/Booking";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import MyBookings from "./pages/MyBookings";
-import AdminDashboard from "./pages/AdminDashboard";
-
-function App() {
-  return (
-    <>
-      {/* Navbar appears on every page */}
-      <Navbar />
-
-      <Routes>
-
-        {/* =========================
-            Login
-        ========================= */}
-        <Route
-          path="/"
-          element={<Login />}
-        />
-
-        {/* =========================
-            Register
-        ========================= */}
-        <Route
-          path="/register"
-          element={<Register />}
-        />
-
-        {/* =========================
-            Home
-        ========================= */}
-        <Route
-          path="/home"
-          element={<Home />}
-        />
-
-        {/* =========================
-            Booking
-        ========================= */}
-        <Route
-          path="/booking/:id"
-          element={
-            <ProtectedRoute>
-              <Booking />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* =========================
-            My Bookings
-        ========================= */}
-        <Route
-          path="/my-bookings"
-          element={
-            <ProtectedRoute>
-              <MyBookings />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* =========================
-            Admin
-        ========================= */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-      </Routes>
-    </>
-  );
-}
-
-export default App;
-
-export default App;
+module.exports = app;
