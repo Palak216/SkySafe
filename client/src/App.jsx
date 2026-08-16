@@ -1,17 +1,27 @@
 import { Routes, Route } from "react-router-dom";
 
+// ==============================
+// Components
+// ==============================
 import ProtectedRoute from "./components/ProtectedRoute";
 
-import Home from "./pages/Home";
-import Booking from "./pages/Booking";
+// ==============================
+// Pages
+// ==============================
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Home from "./pages/Home";
+import Booking from "./pages/Booking";
 import MyBookings from "./pages/MyBookings";
 import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
     <Routes>
+
+      {/* ==========================
+          PUBLIC ROUTES
+      ========================== */}
 
       {/* Login */}
       <Route
@@ -24,6 +34,11 @@ function App() {
         path="/register"
         element={<Register />}
       />
+
+
+      {/* ==========================
+          USER ROUTES
+      ========================== */}
 
       {/* Home */}
       <Route
@@ -51,14 +66,30 @@ function App() {
         }
       />
 
-      {/* Admin */}
+
+      {/* ==========================
+          ADMIN ROUTE
+      ========================== */}
+
+      {/* Admin Dashboard */}
+
       <Route
         path="/admin"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute adminOnly>
             <AdminDashboard />
           </ProtectedRoute>
         }
+      />
+
+
+      {/* ==========================
+          FALLBACK ROUTE
+      ========================== */}
+
+      <Route
+        path="*"
+        element={<Login />}
       />
 
     </Routes>

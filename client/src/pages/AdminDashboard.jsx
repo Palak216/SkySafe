@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { getDashboardStats } from "../services/adminService";
-import Navbar from "../components/Navbar";
+import { useNavigate } from "react-router-dom";
 
 function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchStats();
@@ -18,7 +20,19 @@ function AdminDashboard() {
 
       setStats(data.stats);
     } catch (error) {
-      console.log("Dashboard Error:", error);
+      console.log("ADMIN DASHBOARD ERROR:", error);
+
+      if (error.response?.status === 401) {
+        alert("Please login first");
+        navigate("/");
+        return;
+      }
+
+      if (error.response?.status === 403) {
+        alert("Admin access only");
+        navigate("/home");
+        return;
+      }
 
       alert(
         error.response?.data?.message ||
@@ -29,196 +43,200 @@ function AdminDashboard() {
     }
   };
 
-  // ==============================
+  // ==========================
   // Loading
-  // ==============================
+  // ==========================
 
   if (loading) {
     return (
-      <>
-        <Navbar />
-
-        <h1 className="text-center mt-20 text-3xl">
+      <div className="min-h-screen flex items-center justify-center">
+        <h1 className="text-3xl font-bold text-blue-700">
           Loading Dashboard...
         </h1>
-      </>
+      </div>
     );
   }
 
-  // ==============================
+  // ==========================
+  // No Stats
+  // ==========================
+
+  if (!stats) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <h1 className="text-2xl text-red-600">
+          Unable to load dashboard
+        </h1>
+      </div>
+    );
+  }
+
+  // ==========================
   // Dashboard
-  // ==============================
+  // ==========================
 
   return (
-    <>
-      <Navbar />
+    <div className="min-h-screen bg-gray-100">
 
-      <div className="min-h-screen bg-gray-100 p-10">
+      {/* ==========================
+          Header
+      ========================== */}
 
-        {/* Header */}
+      <header className="bg-blue-700 text-white px-8 py-5 shadow-md">
 
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
 
-          <h1 className="text-4xl font-bold text-blue-700 mb-2">
-            Admin Dashboard
-          </h1>
+          <div>
+            <h1 className="text-3xl font-bold">
+              SkySafe ✈️
+            </h1>
 
-          <p className="text-gray-500 mb-10">
-            Manage SkySafe flights, users and bookings
-          </p>
+            <p className="text-blue-100 mt-1">
+              Admin Dashboard
+            </p>
+          </div>
 
+          <button
+            onClick={() => navigate("/home")}
+            className="bg-white text-blue-700 px-5 py-2 rounded-lg font-semibold hover:bg-gray-100"
+          >
+            Back to Home
+          </button>
 
-          {/* ==============================
-              Statistics
-          ============================== */}
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      </header>
 
-            {/* Flights */}
+      {/* ==========================
+          Main Content
+      ========================== */}
 
-            <div className="bg-white shadow-lg rounded-xl p-7">
+      <main className="max-w-7xl mx-auto px-6 py-10">
 
-              <p className="text-gray-500 text-lg">
-                Total Flights
-              </p>
+        <h2 className="text-3xl font-bold text-gray-800 mb-8">
+          Dashboard Overview
+        </h2>
 
-              <h2 className="text-5xl font-bold text-blue-700 mt-4">
-                {stats?.totalFlights || 0}
-              </h2>
+        {/* ==========================
+            Statistics Cards
+        ========================== */}
 
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
+          {/* Total Flights */}
 
-            {/* Users */}
+          <div className="bg-white rounded-xl shadow-lg p-7">
 
-            <div className="bg-white shadow-lg rounded-xl p-7">
+            <p className="text-gray-500 text-lg">
+              Total Flights
+            </p>
 
-              <p className="text-gray-500 text-lg">
-                Total Users
-              </p>
+            <h3 className="text-5xl font-bold text-blue-700 mt-4">
+              {stats.totalFlights}
+            </h3>
 
-              <h2 className="text-5xl font-bold text-green-600 mt-4">
-                {stats?.totalUsers || 0}
-              </h2>
-
-            </div>
-
-
-            {/* Bookings */}
-
-            <div className="bg-white shadow-lg rounded-xl p-7">
-
-              <p className="text-gray-500 text-lg">
-                Total Bookings
-              </p>
-
-              <h2 className="text-5xl font-bold text-purple-600 mt-4">
-                {stats?.totalBookings || 0}
-              </h2>
-
-            </div>
-
-
-            {/* Revenue */}
-
-            <div className="bg-white shadow-lg rounded-xl p-7">
-
-              <p className="text-gray-500 text-lg">
-                Revenue
-              </p>
-
-              <h2 className="text-4xl font-bold text-red-600 mt-4">
-                ₹ {stats?.revenue || 0}
-              </h2>
-
-            </div>
+            <p className="text-gray-400 mt-3">
+              Flights in system
+            </p>
 
           </div>
 
+          {/* Total Users */}
 
-          {/* ==============================
-              Admin Actions
-          ============================== */}
+          <div className="bg-white rounded-xl shadow-lg p-7">
 
-          <div className="mt-12">
+            <p className="text-gray-500 text-lg">
+              Total Users
+            </p>
 
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">
-              Management
-            </h2>
+            <h3 className="text-5xl font-bold text-green-600 mt-4">
+              {stats.totalUsers}
+            </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <p className="text-gray-400 mt-3">
+              Registered users
+            </p>
 
+          </div>
 
-              {/* Flight Management */}
+          {/* Total Bookings */}
 
-              <div className="bg-white shadow-lg rounded-xl p-7">
+          <div className="bg-white rounded-xl shadow-lg p-7">
 
-                <h3 className="text-2xl font-bold text-blue-700">
-                  Flight Management
-                </h3>
+            <p className="text-gray-500 text-lg">
+              Total Bookings
+            </p>
 
-                <p className="text-gray-500 mt-2">
-                  Add, update and remove flights.
-                </p>
+            <h3 className="text-5xl font-bold text-purple-600 mt-4">
+              {stats.totalBookings}
+            </h3>
 
-                <button
-                  className="mt-6 bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-lg"
-                >
-                  Manage Flights
-                </button>
+            <p className="text-gray-400 mt-3">
+              All bookings
+            </p>
 
-              </div>
+          </div>
 
+          {/* Revenue */}
 
-              {/* User Management */}
+          <div className="bg-white rounded-xl shadow-lg p-7">
 
-              <div className="bg-white shadow-lg rounded-xl p-7">
+            <p className="text-gray-500 text-lg">
+              Total Revenue
+            </p>
 
-                <h3 className="text-2xl font-bold text-green-600">
-                  User Management
-                </h3>
+            <h3 className="text-4xl font-bold text-red-600 mt-4">
+              ₹ {stats.revenue}
+            </h3>
 
-                <p className="text-gray-500 mt-2">
-                  View registered SkySafe users.
-                </p>
-
-                <button
-                  className="mt-6 bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg"
-                >
-                  Manage Users
-                </button>
-
-              </div>
-
-
-              {/* Booking Management */}
-
-              <div className="bg-white shadow-lg rounded-xl p-7">
-
-                <h3 className="text-2xl font-bold text-purple-600">
-                  Booking Management
-                </h3>
-
-                <p className="text-gray-500 mt-2">
-                  View and manage all bookings.
-                </p>
-
-                <button
-                  className="mt-6 bg-purple-600 hover:bg-purple-700 text-white px-5 py-3 rounded-lg"
-                >
-                  Manage Bookings
-                </button>
-
-              </div>
-
-            </div>
+            <p className="text-gray-400 mt-3">
+              Confirmed bookings
+            </p>
 
           </div>
 
         </div>
 
-      </div>
-    </>
+        {/* ==========================
+            Admin Actions
+        ========================== */}
+
+        <div className="mt-10 bg-white rounded-xl shadow-lg p-8">
+
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">
+            Admin Actions
+          </h2>
+
+          <div className="flex flex-wrap gap-4">
+
+            <button
+              onClick={() => navigate("/home")}
+              className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold"
+            >
+              Manage Flights
+            </button>
+
+            <button
+              onClick={() => navigate("/home")}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold"
+            >
+              View Flights
+            </button>
+
+            <button
+              onClick={() => navigate("/my-bookings")}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold"
+            >
+              View Bookings
+            </button>
+
+          </div>
+
+        </div>
+
+      </main>
+
+    </div>
   );
 }
 

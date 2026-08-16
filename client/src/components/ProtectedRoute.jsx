@@ -2,27 +2,42 @@ import { useContext } from "react";
 import { Navigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, adminOnly = false }) {
   const { user, loading } = useContext(AuthContext);
 
-  console.log("PROTECTED ROUTE:");
-  console.log("user:", user);
-  console.log("loading:", loading);
+  // ==============================
+  // Checking Login Status
+  // ==============================
 
   if (loading) {
     return (
-      <h1 className="text-center mt-20 text-3xl">
-        Loading...
-      </h1>
+      <div className="min-h-screen flex items-center justify-center">
+        <h1 className="text-3xl font-bold text-blue-700">
+          Loading...
+        </h1>
+      </div>
     );
   }
 
+  // ==============================
+  // User Not Logged In
+  // ==============================
+
   if (!user) {
-    console.log("❌ NO USER → REDIRECTING TO LOGIN");
     return <Navigate to="/" replace />;
   }
 
-  console.log("✅ USER EXISTS → ALLOWING PAGE");
+  // ==============================
+  // Admin Access Check
+  // ==============================
+
+  if (adminOnly && user.role !== "admin") {
+    return <Navigate to="/home" replace />;
+  }
+
+  // ==============================
+  // Allow Access
+  // ==============================
 
   return children;
 }
