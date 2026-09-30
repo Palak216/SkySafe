@@ -1,0 +1,49 @@
+const express = require("express");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+
+const authRoutes = require("./routes/auth.routes");
+const flightRoutes = require("./routes/flight.routes");
+const bookingRoutes = require("./routes/booking.routes");
+const adminRoutes = require("./routes/admin.routes");
+const aiFlightRoutes = require("./routes/aiFlight.routes");
+
+const app = express();
+
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://localhost:3000",
+      "https://skysafe-1.onrender.com"
+    ],
+    credentials: true,
+  })
+);
+
+app.use(express.json());
+app.use(cookieParser());
+
+app.use("/api/admin", adminRoutes);
+
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome to SkySafe API ✈️"
+  });
+});
+
+app.use("/api/auth", authRoutes);
+app.use("/api/flights", flightRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/ai", aiFlightRoutes);
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route Not Found"
+  });
+});
+
+module.exports = app;
