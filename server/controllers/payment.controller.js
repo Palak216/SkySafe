@@ -138,12 +138,13 @@ const handleWebhook = async (req, res, next) => {
     // Parse event payload
     const eventPayload = typeof rawBody === "string" ? JSON.parse(rawBody) : JSON.parse(rawBody.toString("utf8"));
     const eventType = eventPayload.event;
-    const eventId = eventPayload.entity ? `${eventPayload.event}_${eventPayload.entity.id}` : `evt_${Date.now()}`;
+    const paymentEntity = eventPayload.payload?.payment?.entity;
+    const bookingId = paymentEntity?.notes?.bookingId;
+    const eventId = req.headers["x-razorpay-event-id"] || `${eventType}_${paymentEntity?.id || Date.now()}`;
 
     console.log(`🔔 [RAZORPAY WEBHOOK] Received event: ${eventType} (ID: ${eventId})`);
 
-    const paymentEntity = eventPayload.payload?.payment?.entity;
-    const bookingId = paymentEntity?.notes?.bookingId;
+    
 
     if (eventType === "payment.captured") {
       if (bookingId && paymentEntity) {

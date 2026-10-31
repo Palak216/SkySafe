@@ -27,27 +27,28 @@ jest.mock("../services/nlSearch.service", () => {
 
 // Mock Razorpay SDK globally in tests
 jest.mock("razorpay", () => {
-  return jest.fn().mockImplementation(() => ({
-    orders: {
-      create: jest.fn().mockImplementation(async (params) => ({
-        id: `order_mock_${Date.now()}`,
-        amount: params.amount,
-        currency: params.currency || "INR",
-        receipt: params.receipt,
-        status: "created",
-      })),
-    },
-    payments: {
-      refund: jest.fn().mockImplementation(async (paymentId, params) => ({
-        id: `rfnd_mock_${Date.now()}`,
-        payment_id: paymentId,
-        amount: params.amount,
-        status: "processed",
-      })),
-    },
-  }));
+  return class Razorpay {
+    constructor() {
+      this.orders = {
+        create: async (params) => ({
+          id: `order_mock_${Date.now()}`,
+          amount: params.amount,
+          currency: params.currency || "INR",
+          receipt: params.receipt,
+          status: "created",
+        }),
+      };
+      this.payments = {
+        refund: async (paymentId, params = {}) => ({
+          id: `rfnd_mock_${Date.now()}`,
+          payment_id: paymentId,
+          amount: params.amount,
+          status: "processed",
+        }),
+      };
+    }
+  };
 });
-
 beforeAll(async () => {
   process.env.NODE_ENV = "test";
   process.env.JWT_SECRET = "test_super_secret_jwt_key_at_least_32_chars";
