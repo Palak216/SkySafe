@@ -57,11 +57,14 @@ const createOrder = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "Payment order created successfully",
-      data: {
+            data: {
         orderId: order.id,
         amount: order.amount,
         currency: order.currency,
-        keyId: env.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID,
+        keyId: paymentService.isMockMode()
+          ? "rzp_test_mock"
+          : env.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID,
+        mock: paymentService.isMockMode(),
         pnr: booking.pnr,
         expiresAt: booking.expiresAt,
       },
@@ -175,9 +178,33 @@ const handleWebhook = async (req, res, next) => {
     return res.status(200).json({ status: "error_handled", message: error.message });
   }
 };
+/**
+ * Mock mode only: returns a valid simulated payment for a booking's order.
+ * POST /api/payments/mock-pay
+ */
+const mockPay = async (req, res, next) => {
+  try {
+    if (!paymentService.isMockMode()) {
+      return next(new AppError("Not found", 404));
+    }
 
-module.exports = {
+    const booking = await Booking.findById(req.body.bookingId);
+    if (!booking) return next(new AppError("Booking not found", 404));
+    if (booking.user.toString() !== req.user.id.toString()) {
+      return next(new AppError("You do not own this booking", 403));
+    }
+    if (!booking.payment?.razorpayOrderId) {
+      return next(new AppError("Create a payment order first", 400));
+    }
+
+    const simulated = paymentService.generateMockPayment(booking.payment.razorpayOrderId);
+    return res.status(200).json({ success: true, data: simulated });
+  } catch (error) {
+    next(error);
+  }
+};module.exports = {
   createOrder,
   verifyPayment,
   handleWebhook,
+  mockPay,
 };

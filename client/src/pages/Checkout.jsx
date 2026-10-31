@@ -3,8 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { AuthContext } from "../context/AuthContext";
 import { getBookingById } from "../services/bookingService";
-import { loadRazorpayScript, createPaymentOrder, verifyPayment } from "../services/paymentService";
-
+import { loadRazorpayScript, createPaymentOrder, verifyPayment, createMockPayment } from "../services/paymentService";
 function Checkout() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -75,6 +74,30 @@ function Checkout() {
   };
 
   // Handle Razorpay Payment flow
+    const confirmPayment = async (response) => {
+    try {
+      const verifyRes = await verifyPayment({
+        bookingId: booking._id,
+        razorpay_order_id: response.razorpay_order_id,
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_signature: response.razorpay_signature,
+      });
+
+      if (verifyRes.data?.autoRefunded) {
+        alert(verifyRes.message || "Payment completed after reservation expired. A refund has been issued.");
+        navigate("/my-bookings");
+      } else {
+        navigate(`/confirmation/${booking._id}`);
+      }
+    } catch (verifyErr) {
+      setErrorMsg(
+        verifyErr.response?.data?.message ||
+          "Payment verification failed. If your account was charged, your reservation will update automatically or be refunded."
+      );
+      setPaying(false);
+    }
+  };
+
   const handlePayment = async () => {
     if (isExpired) {
       alert("This reservation has expired. Please select a flight again.");
@@ -85,17 +108,23 @@ function Checkout() {
       setPaying(true);
       setErrorMsg("");
 
-      // 1. Ensure Razorpay Checkout script is loaded
+      // 1. Create order on backend (amount computed strictly on server)
+      const orderRes = await createPaymentOrder(booking._id);
+      const { orderId, amount, currency, keyId, mock } = orderRes.data || orderRes;
+
+      // 2. Simulated payment (PAYMENT_MODE=mock): no Razorpay popup
+      if (mock) {
+        const sim = await createMockPayment(booking._id);
+        await confirmPayment(sim.data || sim);
+        return;
+      }
+
+      // 3. Real Razorpay Checkout
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
         throw new Error("Unable to connect to Razorpay payment gateway. Please check your network.");
       }
 
-      // 2. Create order on backend (amount computed strictly on server)
-      const orderRes = await createPaymentOrder(booking._id);
-      const { orderId, amount, currency, keyId } = orderRes.data || orderRes;
-
-      // 3. Configure Razorpay modal
       const options = {
         key: keyId,
         amount,
@@ -108,39 +137,9 @@ function Checkout() {
           name: user?.name || booking.passengers?.[0]?.name || "Traveler",
           email: user?.email || "traveler@skysafe.com",
         },
-        theme: {
-          color: "#1d4ed8",
-        },
-        modal: {
-          ondismiss: () => {
-            setPaying(false);
-          },
-        },
-        handler: async (response) => {
-          try {
-            // 4. Verify payment signature on backend
-            const verifyRes = await verifyPayment({
-              bookingId: booking._id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
-
-            if (verifyRes.data?.autoRefunded) {
-              alert(verifyRes.message || "Payment completed after reservation expired. A refund has been issued.");
-              navigate("/my-bookings");
-            } else {
-              // 5. Successful payment confirmation!
-              navigate(`/confirmation/${booking._id}`);
-            }
-          } catch (verifyErr) {
-            setErrorMsg(
-              verifyErr.response?.data?.message ||
-              "Payment verification failed. If your account was charged, your reservation will update automatically or be refunded."
-            );
-            setPaying(false);
-          }
-        },
+        theme: { color: "#1d4ed8" },
+        modal: { ondismiss: () => setPaying(false) },
+        handler: confirmPayment,
       };
 
       const razorpayInstance = new window.Razorpay(options);
@@ -157,6 +156,7 @@ function Checkout() {
       setPaying(false);
     }
   };
+  
 
   if (loading) {
     return (

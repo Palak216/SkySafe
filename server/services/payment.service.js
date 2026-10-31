@@ -5,6 +5,29 @@ const AppError = require("../utils/AppError");
 
 let razorpayInstance = null;
 
+/** Mock mode is for local demos only and is refused in production. */
+const isMockMode = () =>
+  process.env.PAYMENT_MODE === "mock" && process.env.NODE_ENV !== "production";
+
+const getKeySecret = () =>
+  env.RAZORPAY_KEY_SECRET ||
+  process.env.RAZORPAY_KEY_SECRET ||
+  (isMockMode() ? "mock_key_secret" : undefined);
+
+/** Simulates what Razorpay Checkout returns after a successful payment. */
+const generateMockPayment = (orderId) => {
+  const paymentId = `pay_mock_${crypto.randomBytes(7).toString("hex")}`;
+  const signature = crypto
+    .createHmac("sha256", getKeySecret())
+    .update(`${orderId}|${paymentId}`)
+    .digest("hex");
+  return {
+    razorpay_order_id: orderId,
+    razorpay_payment_id: paymentId,
+    razorpay_signature: signature,
+  };
+};
+
 /**
  * Get or initialize the Razorpay client singleton
  */
@@ -26,15 +49,19 @@ function getRazorpayClient() {
 }
 
 /**
- * Create a Razorpay Order
- * @param {Object} params
- * @param {string} params.bookingId - SkySafe Booking ID for receipt
- * @param {number} params.amountInPaise - Order amount in smallest currency unit (paise)
- * @param {string} [params.currency="INR"]
- * @param {Object} [params.notes]
- * @returns {Promise<Object>} Razorpay Order
+ * Create a Razorpay Order (or a simulated one in mock mode)
  */
 const createOrder = async ({ bookingId, amountInPaise, currency = "INR", notes = {} }) => {
+  if (isMockMode()) {
+    return {
+      id: `order_mock_${crypto.randomBytes(7).toString("hex")}`,
+      amount: Math.round(amountInPaise),
+      currency,
+      receipt: `bkg_${bookingId.toString().slice(-14)}`,
+      status: "created",
+    };
+  }
+
   const rzp = getRazorpayClient();
 
   try {
@@ -57,18 +84,15 @@ const createOrder = async ({ bookingId, amountInPaise, currency = "INR", notes =
 
 /**
  * Timing-safe HMAC SHA256 Signature Verification for Payment Checkouts
- * @param {Object} params
- * @param {string} params.orderId - razorpay_order_id
- * @param {string} params.paymentId - razorpay_payment_id
- * @param {string} params.signature - razorpay_signature
- * @returns {boolean}
  */
 const verifyPaymentSignature = ({ orderId, paymentId, signature }) => {
   if (!orderId || !paymentId || !signature) {
     return false;
   }
 
-  const keySecret = env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
+  const keySecret = getKeySecret();
+  if (!keySecret) return false;
+
   const payload = `${orderId}|${paymentId}`;
 
   const expectedSignature = crypto
@@ -88,9 +112,6 @@ const verifyPaymentSignature = ({ orderId, paymentId, signature }) => {
 
 /**
  * Timing-safe HMAC SHA256 Signature Verification for Webhooks
- * @param {Buffer|string} rawBody - Raw unparsed request body buffer or string
- * @param {string} signature - Header 'x-razorpay-signature'
- * @returns {boolean}
  */
 const verifyWebhookSignature = (rawBody, signature) => {
   if (!rawBody || !signature) {
@@ -116,14 +137,18 @@ const verifyWebhookSignature = (rawBody, signature) => {
 };
 
 /**
- * Issue a Refund through Razorpay API
- * @param {Object} params
- * @param {string} params.paymentId - razorpay_payment_id
- * @param {number} [params.amountInPaise] - Optional partial amount in paise (omit for full)
- * @param {Object} [params.notes]
- * @returns {Promise<Object>} Razorpay Refund Object
+ * Issue a Refund through Razorpay API (or a simulated one in mock mode)
  */
 const processRefund = async ({ paymentId, amountInPaise, notes = {} }) => {
+  if (isMockMode()) {
+    return {
+      id: `rfnd_mock_${crypto.randomBytes(7).toString("hex")}`,
+      payment_id: paymentId,
+      amount: amountInPaise,
+      status: "processed",
+    };
+  }
+
   const rzp = getRazorpayClient();
 
   try {
@@ -152,4 +177,6 @@ module.exports = {
   verifyWebhookSignature,
   processRefund,
   getRazorpayClient,
+  isMockMode,
+  generateMockPayment,
 };

@@ -51,7 +51,7 @@ describe("Razorpay Payment & Webhook Suite", () => {
   it("should verify payment signature using HMAC SHA256 timing-safe comparison", async () => {
     const orderId = "order_test_12345";
     const paymentId = "pay_test_67890";
-    const keySecret = process.env.RAZORPAY_KEY_SECRET || "rzp_test_mock_secret_key";
+    const keySecret = require("../config/env").RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
 
     // 1. Invalid signature should be rejected with 400
     const badVerify = await request(app)
@@ -81,7 +81,6 @@ describe("Razorpay Payment & Webhook Suite", () => {
         razorpay_payment_id: paymentId,
         razorpay_signature: validSignature,
       });
-
     expect(goodVerify.status).toBe(200);
     expect(goodVerify.body.success).toBe(true);
     expect(goodVerify.body.data.booking.status).toBe("CONFIRMED");
@@ -160,8 +159,7 @@ describe("Razorpay Payment & Webhook Suite", () => {
 
     const orderId = "order_late_123";
     const paymentId = "pay_late_456";
-    const keySecret = process.env.RAZORPAY_KEY_SECRET || "rzp_test_mock_secret_key";
-    const validSignature = crypto
+    const keySecret = require("../config/env").RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;    const validSignature = crypto
       .createHmac("sha256", keySecret)
       .update(`${orderId}|${paymentId}`)
       .digest("hex");
