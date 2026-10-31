@@ -42,3 +42,11 @@ export const verifyPayment = async ({
   });
   return response.data;
 };
+
+/**
+ * Mock mode only: asks the server for a simulated (validly signed) payment
+ */
+export const createMockPayment = async (bookingId) => {
+  const response = await api.post("/payments/mock-pay", { bookingId });
+  return response.data;
+};
