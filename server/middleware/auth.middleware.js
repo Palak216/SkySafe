@@ -1,39 +1,35 @@
 const jwt = require("jsonwebtoken");
+const AppError = require("../utils/AppError");
 
-const authMiddleware = (req, res, next) => {
-    try {
+/**
+ * Authentication Middleware
+ * Checks JWT in HTTP-only cookies or Authorization Bearer header
+ */
+const requireAuth = (req, res, next) => {
+  try {
+    let token = req.cookies?.token;
 
-        // Get token from cookies
-        const token = req.cookies.token;
-
-        // Check if token exists
-        if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: "Please login first"
-            });
-        }
-
-        // Verify JWT
-        const decoded = jwt.verify(
-            token,
-            process.env.JWT_SECRET
-        );
-
-        // Save user info in request
-        req.user = decoded;
-
-        // Move to next middleware/route
-        next();
-
-    } catch (error) {
-
-        return res.status(401).json({
-            success: false,
-            message: "Invalid or Expired Token"
-        });
-
+    // Also support Bearer token from headers
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+      token = req.headers.authorization.split(" ")[1];
     }
+
+    if (!token) {
+      return next(new AppError("Authentication required. Please log in.", 401));
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return next(new AppError("Session expired. Please log in again.", 401));
+    }
+    return next(new AppError("Invalid authentication token.", 401));
+  }
 };
 
-module.exports = authMiddleware;
+// Aliases for compatibility
+module.exports = requireAuth;
+module.exports.requireAuth = requireAuth;
+module.exports.authMiddleware = requireAuth;

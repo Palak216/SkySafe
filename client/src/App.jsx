@@ -1,17 +1,16 @@
 import { Routes, Route } from "react-router-dom";
 
-// ==============================
 // Components
-// ==============================
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// ==============================
 // Pages
-// ==============================
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
+import SearchResults from "./pages/SearchResults";
 import Booking from "./pages/Booking";
+import Checkout from "./pages/Checkout";
+import BookingConfirmation from "./pages/BookingConfirmation";
 import MyBookings from "./pages/MyBookings";
 import AdminDashboard from "./pages/AdminDashboard";
 import FlightManagement from "./pages/FlightManagement";
@@ -19,35 +18,22 @@ import FlightManagement from "./pages/FlightManagement";
 function App() {
   return (
     <Routes>
-
       {/* ==========================
           PUBLIC ROUTES
       ========================== */}
+      {/* Home / Search */}
+      <Route path="/" element={<Home />} />
+      <Route path="/home" element={<Home />} />
+      <Route path="/search" element={<SearchResults />} />
 
-      {/* Login */}
-      <Route
-        path="/"
-        element={<Login />}
-      />
-
-      {/* Register */}
-      <Route
-        path="/register"
-        element={<Register />}
-      />
-
+      {/* Authentication */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
       {/* ==========================
-          USER ROUTES
+          USER PROTECTED ROUTES
       ========================== */}
-
-      {/* Home */}
-      <Route
-        path="/home"
-        element={<Home />}
-      />
-
-      {/* Booking */}
+      {/* Flight Details & Passenger Form */}
       <Route
         path="/booking/:id"
         element={
@@ -57,7 +43,27 @@ function App() {
         }
       />
 
-      {/* My Bookings */}
+      {/* Razorpay Checkout & 10-Min Timer */}
+      <Route
+        path="/checkout/:id"
+        element={
+          <ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Booking Confirmation & E-Ticket */}
+      <Route
+        path="/confirmation/:id"
+        element={
+          <ProtectedRoute>
+            <BookingConfirmation />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* My Bookings History */}
       <Route
         path="/my-bookings"
         element={
@@ -67,12 +73,9 @@ function App() {
         }
       />
 
-
       {/* ==========================
-          ADMIN ROUTES
+          ADMIN PROTECTED ROUTES
       ========================== */}
-
-      {/* Admin Dashboard */}
       <Route
         path="/admin"
         element={
@@ -82,7 +85,6 @@ function App() {
         }
       />
 
-      {/* Admin Flight Management */}
       <Route
         path="/admin/flights"
         element={
@@ -92,16 +94,10 @@ function App() {
         }
       />
 
-
       {/* ==========================
           FALLBACK ROUTE
       ========================== */}
-
-      <Route
-        path="*"
-        element={<Login />}
-      />
-
+      <Route path="*" element={<Home />} />
     </Routes>
   );
 }

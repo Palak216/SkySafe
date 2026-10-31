@@ -4,95 +4,98 @@ import { loginUser } from "../services/authService";
 import { AuthContext } from "../context/AuthContext";
 
 function Login() {
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const navigate = useNavigate();
-
-  const { setUser } = useContext(AuthContext);
+  const { login } = useContext(AuthContext);
 
   const handleLogin = async (e) => {
-
     e.preventDefault();
+    setErrorMsg("");
+    setSubmitting(true);
 
     try {
+      const data = await loginUser({ email, password });
+      const user = data.data?.user || data.user;
+      const token = data.data?.token || data.token;
 
-      const data = await loginUser({
-        email,
-        password,
-      });
-
-      console.log("LOGIN RESPONSE:", data);
-
-      // VERY IMPORTANT
-      setUser(data.user);
-
-      alert(data.message);
-
-      navigate("/home");
-
+      login(user, token);
+      navigate("/");
     } catch (error) {
-
-      console.log(error);
-
-      alert(
+      setErrorMsg(
         error.response?.data?.message ||
-        "Login failed"
+        "Invalid email or password. Please try again."
       );
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-blue-100">
+    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+      <div className="bg-white p-8 sm:p-10 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
+        <div className="text-center mb-8">
+          <Link to="/" className="text-3xl font-black text-blue-700 tracking-tight">
+            SkySafe ✈️
+          </Link>
+          <h2 className="text-xl font-bold text-gray-900 mt-3">Welcome Back</h2>
+          <p className="text-xs text-gray-500 mt-1">Log in to manage bookings and checkout faster.</p>
+        </div>
 
-      <div className="bg-white p-8 rounded-xl shadow-lg w-80">
+        {errorMsg && (
+          <div className="mb-6 p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-semibold">
+            {errorMsg}
+          </div>
+        )}
 
-        <h1 className="text-2xl font-bold text-blue-700 text-center mb-6">
-          Login
-        </h1>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Email Address</label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white"
+              required
+            />
+          </div>
 
-        <form onSubmit={handleLogin}>
-
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full border rounded-lg p-3 mb-3"
-            required
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full border rounded-lg p-3 mb-4"
-            required
-          />
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Password</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white"
+              required
+            />
+          </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg"
+            disabled={submitting}
+            className="w-full bg-blue-700 hover:bg-blue-800 disabled:bg-blue-400 text-white font-bold py-3.5 rounded-xl shadow-md transition flex items-center justify-center"
           >
-            Login
+            {submitting ? "Signing in..." : "Sign In"}
           </button>
-
         </form>
 
-        <p className="text-center mt-4 text-sm">
+        <div className="mt-6 text-center text-xs text-gray-500">
+          Demo Admin: <span className="font-mono text-gray-800">admin@skysafe.com / Admin@123456</span>
+        </div>
+
+        <p className="text-center mt-6 text-xs text-gray-600">
           Don't have an account?{" "}
-          <Link
-            to="/register"
-            className="text-blue-700"
-          >
-            Register
+          <Link to="/register" className="text-blue-700 font-bold hover:underline">
+            Create an account
           </Link>
         </p>
-
       </div>
-
     </section>
   );
 }

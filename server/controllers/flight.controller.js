@@ -1,200 +1,151 @@
-const Flight = require("../models/Flight");
+const flightService = require("../services/flight.service");
+const { searchFlightsNaturalLanguage } = require("../services/nlSearch.service");
 
-// ==============================
-// Add Flight
-// ==============================
-const addFlight = async (req, res) => {
-    try {
+/**
+ * Get All / Search Flights
+ * GET /api/flights?from=&to=&date=&minPrice=&maxPrice=&airline=&sortBy=&order=&page=&limit=
+ */
+const getFlights = async (req, res, next) => {
+  try {
+    const result = await flightService.searchFlights(req.query);
 
-        const existingFlight = await Flight.findOne({
-            flightNumber: req.body.flightNumber,
-        });
-
-        if (existingFlight) {
-            return res.status(400).json({
-                success: false,
-                message: "Flight already exists",
-            });
-        }
-
-        const flight = await Flight.create(req.body);
-
-        res.status(201).json({
-            success: true,
-            message: "Flight added successfully",
-            flight,
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message,
-        });
-
-    }
+    return res.status(200).json({
+      success: true,
+      count: result.flights.length,
+      data: result,
+      flights: result.flights,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-// ==============================
-// Get All Flights
-// ==============================
-const getAllFlights = async (req, res) => {
-    try {
+/**
+ * Search Flights (Alias endpoint for /api/flights/search)
+ * GET /api/flights/search
+ */
+const searchFlights = async (req, res, next) => {
+  try {
+    const result = await flightService.searchFlights(req.query);
 
-        const flights = await Flight.find();
-
-        res.status(200).json({
-            success: true,
-            count: flights.length,
-            flights,
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message,
-        });
-
-    }
+    return res.status(200).json({
+      success: true,
+      count: result.flights.length,
+      data: result,
+      flights: result.flights,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
-// ==============================
-// Get Flight By ID
-// ==============================
-const getFlightById = async (req, res) => {
-    try {
 
-        const flight = await Flight.findById(req.params.id);
+/**
+ * Natural Language Flight Search
+ * POST /api/flights/nl-search
+ */
+const searchFlightsNL = async (req, res, next) => {
+  try {
+    const { query, message } = req.body;
+    const textToSearch = query || message;
 
-        if (!flight) {
-            return res.status(404).json({
-                success: false,
-                message: "Flight not found"
-            });
-        }
+    const result = await searchFlightsNaturalLanguage(textToSearch);
 
-        res.status(200).json({
-            success: true,
-            flight
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-
-    }
-};// ==============================
-// Update Flight
-// ==============================
-const updateFlight = async (req, res) => {
-    try {
-
-        const flight = await Flight.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            {
-                returnDocument: "after",
-                runValidators: true,
-            }
-        );
-
-        if (!flight) {
-            return res.status(404).json({
-                success: false,
-                message: "Flight not found"
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: "Flight updated successfully",
-            flight
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-
-    }
+    return res.status(200).json({
+      success: true,
+      message: "Natural language query parsed successfully",
+      extracted: result.extracted,
+      count: result.flights.length,
+      data: result,
+      flights: result.flights,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
-// ==============================
-// Delete Flight
-// ==============================
-const deleteFlight = async (req, res) => {
-    try {
 
-        const flight = await Flight.findById(req.params.id);
+/**
+ * Get Flight By ID
+ * GET /api/flights/:id
+ */
+const getFlightById = async (req, res, next) => {
+  try {
+    const flight = await flightService.getFlightById(req.params.id);
 
-        if (!flight) {
-            return res.status(404).json({
-                success: false,
-                message: "Flight not found"
-            });
-        }
-
-        await flight.deleteOne();
-
-        res.status(200).json({
-            success: true,
-            message: "Flight deleted successfully"
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-
-    }
+    return res.status(200).json({
+      success: true,
+      data: flight,
+      flight,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
-const searchFlights = async (req, res) => {
-    try {
 
-        const { source, destination, status } = req.query;
+/**
+ * Add New Flight (Admin only)
+ * POST /api/flights
+ */
+const addFlight = async (req, res, next) => {
+  try {
+    const flight = await flightService.createFlight(req.body);
 
-        const filter = {};
-
-        if (source) {
-            filter.source = source;
-        }
-
-        if (destination) {
-            filter.destination = destination;
-        }
-
-        if (status) {
-            filter.status = status;
-        }
-
-        const flights = await Flight.find(filter);
-
-        res.status(200).json({
-            success: true,
-            count: flights.length,
-            flights,
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message,
-        });
-
-    }
+    return res.status(201).json({
+      success: true,
+      message: "Flight added successfully",
+      data: flight,
+      flight,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
+
+/**
+ * Update Flight (Admin only)
+ * PUT /api/flights/:id
+ */
+const updateFlight = async (req, res, next) => {
+  try {
+    const flight = await flightService.updateFlight(req.params.id, req.body);
+
+    return res.status(200).json({
+      success: true,
+      message: "Flight updated successfully",
+      data: flight,
+      flight,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Delete Flight (Admin only)
+ * DELETE /api/flights/:id
+ */
+const deleteFlight = async (req, res, next) => {
+  try {
+    await flightService.deleteFlight(req.params.id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Flight deleted successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
-    addFlight,
-    getAllFlights,
-    getFlightById,
-    updateFlight,
-    deleteFlight,
-      searchFlights,
+  getFlights,
+  getAllFlights: getFlights,
+  searchFlights,
+  searchFlightsNL,
+  getFlightById,
+  addFlight,
+  updateFlight,
+  deleteFlight,
 };

@@ -1,13 +1,25 @@
-const adminMiddleware = (req, res, next) => {
+const AppError = require("../utils/AppError");
 
-    if (req.user.role !== "admin") {
-        return res.status(403).json({
-            success: false,
-            message: "Admin access only",
-        });
+/**
+ * Role-based authorization middleware factory
+ * @param  {...string} allowedRoles
+ */
+const requireRole = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return next(new AppError("Authentication required.", 401));
+    }
+
+    if (!allowedRoles.includes(req.user.role)) {
+      return next(new AppError("Forbidden: Insufficient privileges for this action.", 403));
     }
 
     next();
+  };
 };
 
+const adminMiddleware = requireRole("admin");
+
 module.exports = adminMiddleware;
+module.exports.requireRole = requireRole;
+module.exports.adminMiddleware = adminMiddleware;

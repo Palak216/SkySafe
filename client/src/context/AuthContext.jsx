@@ -1,44 +1,24 @@
 import { createContext, useEffect, useState } from "react";
-import { getProfile } from "../services/authService";
+import { getProfile, logoutUser as logoutApi } from "../services/authService";
 
 export const AuthContext = createContext();
 
-function AuthProvider({ children }) {
-
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const loadUser = async () => {
     try {
-
-      console.log("🔵 GETTING PROFILE...");
-
       const data = await getProfile();
-
-      console.log("🟢 PROFILE RESPONSE:", data);
-
-      if (data.success && data.user) {
-        console.log("✅ SETTING USER:", data.user);
+      if (data?.success && data?.user) {
         setUser(data.user);
       } else {
-        console.log("❌ PROFILE HAS NO USER");
         setUser(null);
       }
-
     } catch (error) {
-
-      console.log(
-        "🔴 PROFILE ERROR:",
-        error.response?.status,
-        error.response?.data || error.message
-      );
-
       setUser(null);
-
     } finally {
-
       setLoading(false);
-
     }
   };
 
@@ -46,12 +26,33 @@ function AuthProvider({ children }) {
     loadUser();
   }, []);
 
+  const login = (userData, token) => {
+    if (token) {
+      localStorage.setItem("token", token);
+    }
+    setUser(userData);
+  };
+
+  const logout = async () => {
+    try {
+      await logoutApi();
+    } catch (e) {
+      // Ignore
+    } finally {
+      localStorage.removeItem("token");
+      setUser(null);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user,
         setUser,
+        login,
+        logout,
         loading,
+        loadUser,
       }}
     >
       {children}

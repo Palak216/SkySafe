@@ -1,151 +1,131 @@
-const Flight = require("../models/Flight");
-const Booking = require("../models/Booking");
+const bookingService = require("../services/booking.service");
+const { generateETicketPDF } = require("../services/ticket.service");
 
-const bookFlight = async (req, res) => {
-    try {
+/**
+ * Create a new booking
+ * POST /api/bookings
+ */
+const bookFlight = async (req, res, next) => {
+  try {
+    const { flightId, passengers } = req.body;
 
-        const { flightId, passengers } = req.body;
+    const booking = await bookingService.createBooking({
+      userId: req.user.id,
+      flightId,
+      passengers,
+    });
 
-        if (!passengers || passengers.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: "At least one passenger is required"
-            });
-        }
-
-        const seatsRequested = passengers.length;
-
-        // Atomically reduce available seats
-        const flight = await Flight.findOneAndUpdate(
-            {
-                _id: flightId,
-                availableSeats: { $gte: seatsRequested }
-            },
-            {
-                $inc: {
-                    availableSeats: -seatsRequested
-                }
-            },
-            {
-                returnDocument: "after"
-            }
-        );
-
-        if (!flight) {
-            return res.status(400).json({
-                success: false,
-                message: "Not enough seats available"
-            });
-        }
-
-        const bookingRef = `SKY-${Date.now().toString(36).toUpperCase()}`;
-
-        const booking = await Booking.create({
-            user: req.user.id,
-            flight: flightId,
-            passengers,
-            seatsBooked: seatsRequested,
-            totalPrice: flight.price * seatsRequested,
-            bookingRef,
-        });
-
-        res.status(201).json({
-            success: true,
-            message: "Booking confirmed",
-            booking,
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-
-    }
-};const getMyBookings = async (req, res) => {
-    try {
-
-        const bookings = await Booking.find({
-            user: req.user.id,
-        })
-        .populate(
-            "flight",
-            "flightNumber airline source destination departureTime arrivalTime"
-        )
-        .sort({
-            createdAt: -1,
-        });
-
-        res.status(200).json({
-            success: true,
-            count: bookings.length,
-            bookings,
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message,
-        });
-
-    }
+    return res.status(201).json({
+      success: true,
+      message: "Flight reserved successfully. Please complete payment within 10 minutes.",
+      data: booking,
+      booking, // backward compatibility
+    });
+  } catch (error) {
+    next(error);
+  }
 };
-const cancelBooking = async (req, res) => {
-    try {
 
-        const booking = await Booking.findById(req.params.id);
+/**
+ * Get My Bookings (Paginated)
+ * GET /api/bookings or GET /api/bookings/my
+ */
+const getMyBookings = async (req, res, next) => {
+  try {
+    const { page, limit, status } = req.query;
 
-        if (!booking) {
-            return res.status(404).json({
-                success: false,
-                message: "Booking not found",
-            });
-        }
+    const result = await bookingService.getUserBookings({
+      userId: req.user.id,
+      role: req.user.role,
+      page,
+      limit,
+      status,
+    });
 
-        if (booking.user.toString() !== req.user.id) {
-            return res.status(403).json({
-                success: false,
-                message: "Not authorized to cancel this booking",
-            });
-        }
-
-        if (booking.status === "Cancelled") {
-            return res.status(400).json({
-                success: false,
-                message: "Booking is already cancelled",
-            });
-        }
-
-        booking.status = "Cancelled";
-        await booking.save();
-
-        await Flight.findByIdAndUpdate(
-            booking.flight,
-            {
-                $inc: {
-                    availableSeats: booking.seatsBooked,
-                },
-            }
-        );
-
-        res.status(200).json({
-            success: true,
-            message: "Booking cancelled successfully",
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message,
-        });
-
-    }
+    return res.status(200).json({
+      success: true,
+      count: result.bookings.length,
+      data: result,
+      bookings: result.bookings, // backward compatibility
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
+
+/**
+ * Get Single Booking By ID
+ * GET /api/bookings/:id
+ */
+const getBookingById = async (req, res, next) => {
+  try {
+    const booking = await bookingService.getBookingById(
+      req.params.id,
+      req.user.id,
+      req.user.role
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: booking,
+      booking,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Cancel Booking
+ * POST /api/bookings/:id/cancel (or DELETE /api/bookings/:id)
+ */
+const cancelBooking = async (req, res, next) => {
+  try {
+    const reason = req.body?.reason || "User requested cancellation";
+
+    const result = await bookingService.cancelBooking({
+      bookingId: req.params.id,
+      userId: req.user.id,
+      role: req.user.role,
+      reason,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: result.refund
+        ? `Booking cancelled successfully. Refund of ₹${result.refund.amount} initiated.`
+        : "Booking cancelled successfully.",
+      data: result,
+      booking: result.booking,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Download PDF E-Ticket
+ * GET /api/bookings/:id/ticket
+ */
+const downloadETicket = async (req, res, next) => {
+  try {
+    const booking = await bookingService.getBookingById(
+      req.params.id,
+      req.user.id,
+      req.user.role
+    );
+
+    generateETicketPDF(booking, res);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
-    bookFlight,
-    getMyBookings,
-    cancelBooking,
+  bookFlight,
+  getMyBookings,
+  getBookingById,
+  cancelBooking,
+  downloadETicket,
 };

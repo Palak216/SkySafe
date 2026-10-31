@@ -87,17 +87,20 @@ const prepareFlightForBooking = async (req, res) => {
 
     // Check if flight already exists in MongoDB
     let dbFlight = await Flight.findOne({
-      flightNumber: flight.flightNumber,
+      flightNumber: flight.flightNumber.toUpperCase(),
       departureTime,
     });
 
     if (!dbFlight) {
       // Create new record in MongoDB
+      const origin = (flight.origin || flight.source || "DEL").toUpperCase();
+      const destination = (flight.destination || "BOM").toUpperCase();
+
       dbFlight = await Flight.create({
-        flightNumber: flight.flightNumber,
+        flightNumber: flight.flightNumber.toUpperCase(),
         airline: flight.airline,
-        source: flight.source,
-        destination: flight.destination,
+        origin,
+        destination,
         departureTime,
         arrivalTime: new Date(flight.arrivalTime),
         duration: flight.duration || "2h 30m",
@@ -105,7 +108,7 @@ const prepareFlightForBooking = async (req, res) => {
         totalSeats: flight.totalSeats || 180,
         availableSeats: flight.availableSeats || 180,
         aircraft: flight.aircraft || "Airbus A320",
-        status: "Scheduled",
+        status: "SCHEDULED",
       });
     }
 

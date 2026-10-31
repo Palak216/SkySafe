@@ -1,13 +1,12 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { registerUser } from "../services/authService";
+import { AuthContext } from "../context/AuthContext";
 
 function Register() {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
-  // ==============================
-  // Form State
-  // ==============================
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -16,10 +15,8 @@ function Register() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  // ==============================
-  // Handle Input Changes
-  // ==============================
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -27,132 +24,137 @@ function Register() {
     });
   };
 
-  // ==============================
-  // Handle Registration
-  // ==============================
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg("");
 
-    // Check password match
+    if (formData.password.length < 6) {
+      setErrorMsg("Password must be at least 6 characters long.");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
+      setErrorMsg("Passwords do not match.");
       return;
     }
 
     try {
       setLoading(true);
 
-      // Send registration data to backend
       const data = await registerUser({
-        name: formData.name,
-        email: formData.email,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
         password: formData.password,
       });
 
-      // Show backend message
-      alert(data.message);
+      const user = data.data?.user || data.user;
+      const token = data.data?.token || data.token;
 
-      // Go to Login page
-      navigate("/");
+      if (user && token) {
+        login(user, token);
+        navigate("/");
+      } else {
+        navigate("/login");
+      }
     } catch (error) {
-      console.error("Registration Error:", error);
-
-      alert(
+      const msg =
         error.response?.data?.message ||
-          "Registration Failed"
-      );
+        error.response?.data?.errors?.[0]?.message ||
+        "Registration failed. Please try again.";
+      setErrorMsg(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  // ==============================
-  // UI
-  // ==============================
   return (
-    <div className="min-h-screen flex justify-center items-center bg-sky-100 px-4">
+    <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12">
+      <div className="bg-white p-8 sm:p-10 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
+        <div className="text-center mb-8">
+          <Link to="/" className="text-3xl font-black text-blue-700 tracking-tight">
+            SkySafe ✈️
+          </Link>
+          <h2 className="text-xl font-bold text-gray-900 mt-3">Create Your Account</h2>
+          <p className="text-xs text-gray-500 mt-1">Book flights with 100% price transparency and verified PNRs.</p>
+        </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-[400px]"
-      >
+        {errorMsg && (
+          <div className="mb-6 p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-semibold">
+            {errorMsg}
+          </div>
+        )}
 
-        {/* Heading */}
-        <h2 className="text-3xl font-bold text-center text-blue-700 mb-6">
-          Create Account
-        </h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Full Name</label>
+            <input
+              type="text"
+              name="name"
+              placeholder="John Doe"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white"
+              required
+            />
+          </div>
 
-        {/* Name */}
-        <input
-          type="text"
-          name="name"
-          placeholder="Full Name"
-          value={formData.name}
-          onChange={handleChange}
-          className="w-full border p-3 rounded-lg mb-4"
-          required
-        />
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Email Address</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="you@example.com"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white"
+              required
+            />
+          </div>
 
-        {/* Email */}
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full border p-3 rounded-lg mb-4"
-          required
-        />
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="At least 6 characters"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white"
+              minLength={6}
+              required
+            />
+          </div>
 
-        {/* Password */}
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-          className="w-full border p-3 rounded-lg mb-4"
-          minLength={6}
-          required
-        />
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Confirm Password</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              placeholder="Re-enter password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white"
+              minLength={6}
+              required
+            />
+          </div>
 
-        {/* Confirm Password */}
-        <input
-          type="password"
-          name="confirmPassword"
-          placeholder="Confirm Password"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          className="w-full border p-3 rounded-lg mb-6"
-          minLength={6}
-          required
-        />
-
-        {/* Register Button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className={`w-full text-white py-3 rounded-lg ${
-            loading
-              ? "bg-gray-500 cursor-not-allowed"
-              : "bg-blue-700 hover:bg-blue-800"
-          }`}
-        >
-          {loading ? "Registering..." : "Register"}
-        </button>
-
-        {/* Login Link */}
-        <p className="text-center mt-5">
-          Already have an account?{" "}
-          <Link
-            to="/"
-            className="text-blue-700 font-semibold hover:underline"
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-700 hover:bg-blue-800 disabled:bg-blue-400 text-white font-bold py-3.5 rounded-xl shadow-md transition flex items-center justify-center mt-2"
           >
-            Login
+            {loading ? "Creating account..." : "Sign Up"}
+          </button>
+        </form>
+
+        <p className="text-center mt-6 text-xs text-gray-600">
+          Already have an account?{" "}
+          <Link to="/login" className="text-blue-700 font-bold hover:underline">
+            Sign In
           </Link>
         </p>
-
-      </form>
+      </div>
     </div>
   );
 }

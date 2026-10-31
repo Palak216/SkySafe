@@ -1,60 +1,39 @@
 const express = require("express");
-
+const rateLimit = require("express-rate-limit");
 const {
-    registerUser,
-    loginUser,
-    logoutUser
+  registerUser,
+  loginUser,
+  logoutUser,
+  getProfile,
 } = require("../controllers/auth.controller");
-
-const authMiddleware = require("../middleware/auth.middleware");
-const User = require("../models/User");
+const requireAuth = require("../middleware/auth.middleware");
+const validate = require("../middleware/validate.middleware");
+const { registerSchema, loginSchema } = require("../validations/auth.validation");
 
 const router = express.Router();
 
-// ==========================
-// Public Routes
-// ==========================
+// Strict rate limit for auth endpoints: 10 requests per 15 minutes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  message: {
+    success: false,
+    message: "Too many login/registration attempts. Please try again after 15 minutes.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Register User
-router.post("/register", registerUser);
+router.post("/register", authLimiter, validate(registerSchema), registerUser);
 
 // Login User
-router.post("/login", loginUser);
+router.post("/login", authLimiter, validate(loginSchema), loginUser);
+
+// Logout User
 router.post("/logout", logoutUser);
 
-// ==========================
-// Protected Routes
-// ==========================
-
-// Get Logged-in User Profile
-router.get("/profile", authMiddleware, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id).select("-password");
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            message: "Profile fetched successfully",
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
+// Profile
+router.get("/profile", requireAuth, getProfile);
 
 module.exports = router;

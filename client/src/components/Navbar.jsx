@@ -1,103 +1,78 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { logoutUser } from "../services/authService";
 
 function Navbar() {
-  const { user, setUser } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    try {
-      const data = await logoutUser();
-
-      alert(data.message);
-
-      setUser(null);
-
-      navigate("/");
-    } catch (error) {
-      console.error("Logout error:", error);
-
-      // Even if backend logout fails,
-      // remove user from frontend
-      setUser(null);
-      navigate("/");
-    }
+    await logout();
+    navigate("/login");
   };
 
   return (
-    <nav className="bg-blue-700 text-white px-8 py-4 flex justify-between items-center shadow-md">
-
+    <nav className="bg-blue-700 text-white px-6 sm:px-8 py-4 flex justify-between items-center shadow-md">
       {/* Logo */}
-      <Link
-        to="/home"
-        className="text-2xl font-bold"
-      >
-        SkySafe ✈️
+      <Link to="/" className="text-2xl font-black tracking-tight flex items-center gap-2">
+        <span>SkySafe</span>
+        <span>✈️</span>
       </Link>
 
       {/* Navigation */}
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-4 sm:gap-6 text-sm font-semibold">
+        <Link to="/" className="hover:text-blue-200 transition">
+          Home
+        </Link>
+
+        <Link to="/search" className="hover:text-blue-200 transition">
+          Browse Flights
+        </Link>
 
         {user ? (
           <>
-            <Link
-              to="/home"
-              className="hover:text-blue-200"
-            >
-              Home
-            </Link>
-
-            <a
-              href="/home#search"
-              className="hover:text-blue-200"
-            >
-              Search Flights
-            </a>
-
-            <Link
-              to="/my-bookings"
-              className="hover:text-blue-200"
-            >
+            <Link to="/my-bookings" className="hover:text-blue-200 transition">
               My Bookings
             </Link>
 
-            {/* Admin link */}
             {user.role === "admin" && (
               <Link
                 to="/admin"
-                className="hover:text-blue-200"
+                className="bg-blue-800 hover:bg-blue-900 px-3 py-1.5 rounded-lg border border-blue-400 text-xs font-bold transition"
               >
-                Admin
+                Admin Panel
               </Link>
             )}
 
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-semibold"
-            >
-              Logout
-            </button>
+            <div className="flex items-center gap-3 pl-2 border-l border-blue-500">
+              <span className="text-xs text-blue-200 hidden md:inline">
+                {user.name}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition"
+              >
+                Logout
+              </button>
+            </div>
           </>
         ) : (
-          <>
+          <div className="flex items-center gap-3">
             <Link
-              to="/"
-              className="hover:text-blue-200"
+              to="/login"
+              className="hover:text-blue-200 transition px-2 py-1"
             >
-              Login
+              Log In
             </Link>
 
             <Link
               to="/register"
-              className="hover:text-blue-200"
+              className="bg-white text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-lg text-xs font-bold transition shadow-sm"
             >
-              Register
+              Sign Up
             </Link>
-          </>
+          </div>
         )}
-
       </div>
     </nav>
   );

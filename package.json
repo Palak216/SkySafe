@@ -1,18 +1,12 @@
 {
-  "dependencies": {
-    "axios": "^1.19.0",
-    "bcrypt": "^6.0.0",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.8.0",
-    "react-hot-toast": "^2.6.0",
-    "react-icons": "^5.7.0",
-    "react-router-dom": "^7.18.2"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
+  "name": "skysafe",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "seed": "cd server && npm run seed",
+    "test": "cd server && npm test",
+    "build": "cd client && npm run build"
   }
 }
