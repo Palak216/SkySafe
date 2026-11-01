@@ -5,6 +5,57 @@
  * user preferences (price, duration, stops, and departure time windows).
  */
 
+// Default clock windows for broad slots (end time is exclusive)
+const SLOT_WINDOWS = {
+  morning: ["05:00", "12:00"],
+  afternoon: ["12:00", "17:00"],
+  evening: ["17:00", "21:00"],
+  night: ["21:00", "05:00"], // crosses midnight
+};
+
+/** Minutes since midnight, read from the time as written in the ISO string (no timezone shift). */
+function minutesOfDay(value) {
+  const iso = value instanceof Date ? value.toISOString() : String(value);
+  const m = iso.match(/T(\d{2}):(\d{2})/);
+  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+}
+
+function toMinutes(hhmm) {
+  const [h, m] = String(hhmm).split(":").map(Number);
+  return h * 60 + (m || 0);
+}
+
+/**
+ * True if the departure falls inside the window. Either bound may be missing.
+ * The end time is exclusive, and a window that crosses midnight is handled.
+ */
+function isInTimeWindow(departure, afterTime, beforeTime) {
+  const dep = minutesOfDay(departure);
+  if (dep === null) return false;
+
+  const start = afterTime ? toMinutes(afterTime) : null;
+  const end = beforeTime ? toMinutes(beforeTime) : null;
+
+  if (start !== null && end !== null) {
+    return start <= end ? dep >= start && dep < end : dep >= start || dep < end;
+  }
+  if (start !== null) return dep >= start;
+  if (end !== null) return dep < end;
+  return true;
+}
+
+/** Works out the active window from explicit times or a broad slot. Returns null if none. */
+function resolveTimeWindow({ timeSlot, afterTime, beforeTime }) {
+  if (afterTime || beforeTime) {
+    return { start: afterTime || null, end: beforeTime || null };
+  }
+  if (timeSlot && SLOT_WINDOWS[timeSlot]) {
+    const [start, end] = SLOT_WINDOWS[timeSlot];
+    return { start, end };
+  }
+  return null;
+}
+
 class RankingService {
   /**
    * Scores and sorts flights based on structured user preferences
@@ -23,6 +74,8 @@ class RankingService {
       nonStop = false,
     } = preferences;
 
+    const timeWindow = resolveTimeWindow({ timeSlot, afterTime, beforeTime });
+
     // Find price and duration boundaries for relative scoring
     const prices = flights.map((f) => f.price);
     const minPrice = Math.min(...prices);
@@ -37,47 +90,20 @@ class RankingService {
       let score = 0;
       const highlights = [];
 
-      const depDate = new Date(flight.departureTime);
-      const depHour = depDate.getUTCHours();
-      const depMin = depDate.getUTCMinutes();
-      const depTimeMinutes = depHour * 60 + depMin;
-
       // 1. Time Preference Match (Max 35 points)
       let matchesTime = false;
 
-      if (afterTime) {
-        const [aHour, aMin] = afterTime.split(":").map(Number);
-        const afterMinutes = aHour * 60 + (aMin || 0);
-        if (depTimeMinutes >= afterMinutes) {
-          matchesTime = true;
+      if (timeWindow) {
+        matchesTime = isInTimeWindow(flight.departureTime, timeWindow.start, timeWindow.end);
+        if (matchesTime) {
           score += 35;
-          highlights.push(`Departs after ${afterTime}`);
-        }
-      } else if (beforeTime) {
-        const [bHour, bMin] = beforeTime.split(":").map(Number);
-        const beforeMinutes = bHour * 60 + (bMin || 0);
-        if (depTimeMinutes <= beforeMinutes) {
-          matchesTime = true;
-          score += 35;
-          highlights.push(`Departs before ${beforeTime}`);
-        }
-      } else if (timeSlot) {
-        if (timeSlot === "morning" && depHour >= 5 && depHour < 12) {
-          matchesTime = true;
-          score += 35;
-          highlights.push("Morning Flight");
-        } else if (timeSlot === "afternoon" && depHour >= 12 && depHour < 17) {
-          matchesTime = true;
-          score += 35;
-          highlights.push("Afternoon Flight");
-        } else if (timeSlot === "evening" && depHour >= 17 && depHour < 21) {
-          matchesTime = true;
-          score += 35;
-          highlights.push("Evening Flight");
-        } else if (timeSlot === "night" && (depHour >= 21 || depHour < 5)) {
-          matchesTime = true;
-          score += 35;
-          highlights.push("Night Flight");
+          if (timeWindow.start && timeWindow.end) {
+            highlights.push(`Departs ${timeWindow.start}-${timeWindow.end}`);
+          } else if (timeWindow.start) {
+            highlights.push(`Departs after ${timeWindow.start}`);
+          } else {
+            highlights.push(`Departs before ${timeWindow.end}`);
+          }
         }
       } else {
         // No explicit time preference
@@ -106,12 +132,13 @@ class RankingService {
       }
 
       // 4. Duration Competitiveness (Max 10 points)
+      const flightDuration = flight.durationMinutes || 120;
       const durationSpread = maxDuration - minDuration || 1;
-      const durationRatio = 1 - (flight.durationMinutes - minDuration) / durationSpread;
+      const durationRatio = 1 - (flightDuration - minDuration) / durationSpread;
       const durationPoints = Math.round(durationRatio * 10);
       score += durationPoints;
 
-      if (flight.durationMinutes === minDuration) {
+      if (flightDuration === minDuration) {
         highlights.push("Fastest Route");
       }
 
@@ -125,8 +152,8 @@ class RankingService {
 
     // Sort flights based on requested criteria
     scoredFlights.sort((a, b) => {
-      // If user had an explicit time window or slot, prioritize flights that meet the time preference
-      if ((timeSlot || afterTime || beforeTime) && a.matchesTimeWindow !== b.matchesTimeWindow) {
+      // If the user gave a time window or slot, flights inside it come first
+      if (timeWindow && a.matchesTimeWindow !== b.matchesTimeWindow) {
         return a.matchesTimeWindow ? -1 : 1;
       }
 
@@ -159,4 +186,7 @@ class RankingService {
   }
 }
 
-module.exports = new RankingService();
+const rankingService = new RankingService();
+rankingService.isInTimeWindow = isInTimeWindow; // exposed for unit tests
+
+module.exports = rankingService;

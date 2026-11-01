@@ -5,3 +5,6 @@ process.env.RAZORPAY_KEY_SECRET = "2KWYZIk1YysCxgebpiTF5pMs"
 process.env.RAZORPAY_WEBHOOK_SECRET = "rzp_test_mock_webhook_secret";
 process.env.CLIENT_URL = "http://localhost:5173";
 process.env.PAYMENT_MODE = "razorpay";
+process.env.SMTP_HOST = "";
+process.env.SMTP_USER = "";
+process.env.SMTP_PASS = "";
