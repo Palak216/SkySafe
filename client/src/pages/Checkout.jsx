@@ -311,10 +311,19 @@ function Checkout() {
                 <span>Base Fare</span>
                 <span>₹{booking.totalAmount.toLocaleString("en-IN")}</span>
               </div>
-              <div className="flex justify-between">
+                            <div className="flex justify-between">
                 <span>Payment Mode</span>
-                <span className="font-semibold text-gray-800">Razorpay (Cards, UPI, NetBanking)</span>
+                <span className="font-semibold text-gray-800">
+                  {import.meta.env.VITE_DEMO_PAYMENTS === "true"
+                    ? "Demo payment (no real money)"
+                    : "Razorpay (Cards, UPI, NetBanking)"}
+                </span>
               </div>
+              {import.meta.env.VITE_DEMO_PAYMENTS === "true" && (
+                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  This is a portfolio demo. Clicking Pay simulates a payment and no money is charged.
+                </p>
+              )}
             </div>
 
             {/* Action Buttons */}

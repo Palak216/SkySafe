@@ -85,9 +85,7 @@ function Login() {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-xs text-gray-500">
-          Demo Admin: <span className="font-mono text-gray-800">admin@skysafe.com / Admin@123456</span>
-        </div>
+       
 
         <p className="text-center mt-6 text-xs text-gray-600">
           Don't have an account?{" "}

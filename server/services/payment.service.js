@@ -6,8 +6,11 @@ const AppError = require("../utils/AppError");
 let razorpayInstance = null;
 
 /** Mock mode is for local demos only and is refused in production. */
+/** Mock mode: local dev always allowed; in production only when explicitly enabled. */
 const isMockMode = () =>
-  process.env.PAYMENT_MODE === "mock" && process.env.NODE_ENV !== "production";
+  process.env.PAYMENT_MODE === "mock" &&
+  (process.env.NODE_ENV !== "production" ||
+    process.env.ALLOW_DEMO_PAYMENTS === "true");
 
 const getKeySecret = () =>
   env.RAZORPAY_KEY_SECRET ||
