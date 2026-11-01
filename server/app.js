@@ -18,7 +18,7 @@ const adminRoutes = require("./routes/admin.routes");
 const aiFlightRoutes = require("./routes/aiFlight.routes");
 
 const app = express();
-
+app.set("trust proxy", 1);
 // 1. Security Headers
 app.use(helmet());
 
